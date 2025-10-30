@@ -65,9 +65,28 @@ const ApplicationForm: React.FC = () => {
             setLoading(true);
             console.log("Submitting data to backend...");
 
+            // ✅ Map frontend camelCase fields to Laravel snake_case fields
+            const payload = {
+                first_name: formData.firstName,
+                middle_name: formData.middleName,
+                last_name: formData.lastName,
+                suffix: formData.suffix,
+                designation_position: formData.designationPosition,
+                residential_address: formData.residentialAddress,
+                name_of_agency_firm: formData.agencyFirm,
+                business_of_the_firm: formData.businessOfFirm,
+                product_line: formData.productLine,
+                type_of_organization: formData.orgType,
+                date_established: formData.dateEstablished,
+                name_of_head_of_agency_firm: formData.nameOfHeadOfAgency,
+                business_address: formData.businessAddress,
+                contact_nos: formData.contactNumbers,
+                website_email_address: formData.webEmailAddress,
+            };
+
             const response = await axios.post(
-                "http://127.0.0.1:8000/api/applicants", //  Add backend API URL here (e.g. "/api/application-form/submit")
-                formData
+                "http://127.0.0.1:8000/api/applicants",
+                payload
             );
 
             console.log("Server response:", response.data);
