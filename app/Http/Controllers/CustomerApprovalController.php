@@ -9,6 +9,6 @@ class CustomerApprovalController extends Controller
 {
      public function index()
     {    
-          return Inertia::render('CustomerApprovalForm');
+          return Inertia::render('CustomerRequest/CustomerApprovalForm');
     }
 }
