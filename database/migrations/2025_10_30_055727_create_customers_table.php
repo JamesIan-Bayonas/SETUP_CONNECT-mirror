@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('customer_applications', function (Blueprint $table) {
             $table->id();
-
             // Basic Information
             $table->string('first_name');
             $table->string('middle_name')->nullable();

@@ -16,7 +16,6 @@ class Customer extends Model
      */
     protected $table = 'customer_applications';
 
-
     /**
      * The attributes that are mass assignable.
      *
