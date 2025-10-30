@@ -7,8 +7,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class Customer extends Model
 {
-    
     use HasFactory;
+
+    /**
+     * The table associated with the model.
+     *
+     * @var string
+     */
+    protected $table = 'customer_applications';
+
 
     /**
      * The attributes that are mass assignable.
@@ -16,25 +23,21 @@ class Customer extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'name',
+        'first_name',
+        'middle_name',
+        'last_name',
+        'suffix',
         'designation_position',
         'residential_address',
-        'agency_firm',
-        'business_of_firm',
+        'name_of_agency_firm',
+        'business_of_the_firm',
         'product_line',
         'type_of_organization',
         'date_established',
-        'head_of_agency_firm',
+        'name_of_head_of_agency_firm',
         'business_address',
         'contact_nos',
-        'website_email',
-        'project_fund_setup_gia_rd',
-        'consultancy_services',
-        'packaging',
-        'labeling',
-        'laboratory_services',
-        'technical_training',
-        'other_services',
+        'website_email_address',
         'accomplished_by',
         'accomplished_date',
         'remarks_action_taken',
@@ -57,12 +60,6 @@ class Customer extends Model
             'accomplished_date' => 'date',
             'handled_date' => 'date',
             'noted_date' => 'date',
-            'project_fund_setup_gia_rd' => 'boolean',
-            'consultancy_services' => 'boolean',
-            'packaging' => 'boolean',
-            'labeling' => 'boolean',
-            'laboratory_services' => 'boolean',
-            'technical_training' => 'boolean',
         ];
     }
 }

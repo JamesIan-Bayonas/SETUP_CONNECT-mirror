@@ -8,34 +8,28 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
-     */ 
+     */
     public function up(): void
     {
-        Schema::create('customers', function (Blueprint $table) {
+        Schema::create('customer_applications', function (Blueprint $table) {
             $table->id();
 
             // Basic Information
-            $table->string('name');
-            $table->string('designation_position')->nullable();
-            $table->text('residential_address')->nullable();
-            $table->string('agency_firm')->nullable();
-            $table->string('business_of_firm')->nullable();
-            $table->string('product_line')->nullable();
-            $table->string('type_of_organization')->nullable();
-            $table->date('date_established')->nullable();
-            $table->string('head_of_agency_firm')->nullable();
-            $table->text('business_address')->nullable();
-            $table->string('contact_nos')->nullable();
-            $table->string('website_email')->nullable();
-
-            // Type of Technical Assistance Sought
-            $table->boolean('project_fund_setup_gia_rd')->default(false);
-            $table->boolean('consultancy_services')->default(false);
-            $table->boolean('packaging')->default(false);
-            $table->boolean('labeling')->default(false);
-            $table->boolean('laboratory_services')->default(false);
-            $table->boolean('technical_training')->default(false);
-            $table->text('other_services')->nullable();
+            $table->string('first_name');
+            $table->string('middle_name')->nullable();
+            $table->string('last_name');
+            $table->string('suffix')->nullable();
+            $table->string('designation_position');
+            $table->text('residential_address');
+            $table->string('name_of_agency_firm');
+            $table->string('business_of_the_firm');
+            $table->string('product_line');
+            $table->string('type_of_organization');
+            $table->date('date_established');
+            $table->string('name_of_head_of_agency_firm');
+            $table->text('business_address');
+            $table->string('contact_nos');
+            $table->string('website_email_address');
 
             // Processing Information
             $table->string('accomplished_by')->nullable();
@@ -56,6 +50,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('customers');
+        Schema::dropIfExists('customer_applications');
     }
 };
