@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\CustomerApprovalController;
 use Illuminate\Support\Facades\Route;
 
 // Redirect root to login
@@ -29,4 +30,10 @@ Route::middleware('auth')->group(function () {
     });
 });
 
+  // Customer Approval Form
+  Route::get('/customerapprovalform', [CustomerApprovalController::class, 'index'])
+        ->name('customerapprovalform');
+
 Route::get('/application-form', [CustomerController::class, 'index'])->name('customer.form');
+
+
