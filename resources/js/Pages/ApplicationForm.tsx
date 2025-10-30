@@ -66,7 +66,7 @@ const ApplicationForm: React.FC = () => {
             console.log("Submitting data to backend...");
 
             const response = await axios.post(
-                "", //  Add backend API URL here (e.g. "/api/application-form/submit")
+                "http://127.0.0.1:8000/api/applicants", //  Add backend API URL here (e.g. "/api/application-form/submit")
                 formData
             );
 
