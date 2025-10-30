@@ -5,6 +5,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerApprovalController;
+use App\Events\CustomerApplicationApproved;
 use Illuminate\Support\Facades\Route;
 
 // Redirect root to login
@@ -37,3 +38,17 @@ Route::middleware('auth')->group(function () {
 Route::get('/application-form', [CustomerController::class, 'index'])->name('customer.form');
 
 
+// Local dev route to test approval email dispatch
+if (app()->environment('local')) {
+    Route::get('/dev/test-approval-mail', function () {
+        // Use positional arguments because Dispatchable::dispatch doesn't support named args
+        CustomerApplicationApproved::dispatch(
+            'Test Applicant',
+            'admin@setupconnect.com',
+            1,
+            optional(auth()->user())->id,
+            now()->toIso8601String(),
+        );
+        return 'Dispatched test approval event.';
+    });
+}
