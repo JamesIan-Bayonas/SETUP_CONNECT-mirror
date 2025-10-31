@@ -40,15 +40,38 @@ Route::get('/application-form', [CustomerController::class, 'index'])->name('cus
 
 // Local dev route to test approval email dispatch
 if (app()->environment('local')) {
+    // Simple form UI to trigger a test send
+    Route::get('/dev/mail-test', function () {
+        return response(<<<HTML
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Mail Test</title></head>
+<body style="font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; padding: 24px;">
+  <h1>Mail Test</h1>
+  <p>Send the Manifestation of Intent email to a specific address.</p>
+  <form method="GET" action="/dev/test-approval-mail" style="margin-bottom:16px;">
+    <label>Email (queued via event): <input type="email" name="to" required style="width:320px;"></label>
+    <button type="submit">Send (Queued)</button>
+  </form>
+  <p style="margin-top:24px; color:#555">Note: Without a verified domain, Resend only delivers to your account email.</p>
+</body>
+</html>
+HTML);
+    });
+
     Route::get('/dev/test-approval-mail', function () {
+        $to = request('to');
+        if (!$to) {
+            return 'Missing recipient (?to=you@example.com)';
+        }
         // Use positional arguments because Dispatchable::dispatch doesn't support named args
         CustomerApplicationApproved::dispatch(
             'Test Applicant',
-            'admin@setupconnect.com',
+            $to,
             1,
             optional(auth()->user())->id,
             now()->toIso8601String(),
         );
-        return 'Dispatched test approval event.';
+        return 'Dispatched test approval event to ' . $to;
     });
 }
