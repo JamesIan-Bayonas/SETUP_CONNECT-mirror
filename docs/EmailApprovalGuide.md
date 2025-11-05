@@ -64,14 +64,14 @@ public function approve(int $id)
 
     // Send email
     CustomerApplicationApproved::dispatch(
-        $application->contact_name ?? 'Applicant',  // Name for greeting
-        $application->email,                         // Recipient email
-        $application->id,                            // Application ID
-        auth()->id(),                                // Approver ID
-        now()->toIso8601String()                     // Approval timestamp
+        $application->contact_name ?? $application->name ?? 'Applicant',
+        $application->website_email_address ?? $application->email,
+        $application->id,
+        auth()->id(),
+        now()->toIso8601String()
     );
 
-    return back()->with('success', 'Application approved!');
+    return back()->with('success', 'Application approved and MOI email sent.');
 }
 ```
 
