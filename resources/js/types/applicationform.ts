@@ -13,7 +13,8 @@ export interface FormData {
     nameOfHeadOfAgency: string;
     businessAddress: string;
     contactNumbers: string;
-    webEmailAddress: string;
+    emailAddress: string;
+    website: string;
 }
 
 export const designationOptions = [

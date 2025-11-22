@@ -9,6 +9,6 @@ class CustomerController extends Controller
 {
      public function index()
     {
-        return Inertia::render('ApplicationForm');
+        return Inertia::render('CustomerApplications/ApplicationForm');
     }
 }

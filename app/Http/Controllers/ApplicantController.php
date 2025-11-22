@@ -12,8 +12,9 @@ class ApplicantController extends Controller
     {
         $validated = $request->validate([
             'first_name' => 'required|string|max:255',
-            'middle_name' => 'required|string|max:255',
+            'middle_name' => 'nullable|string|max:255',
             'last_name' => 'required|string|max:255',
+            'suffix' => 'nullable|string|max:255',
             'designation_position' => 'required|string|max:255',
             'residential_address' => 'required|string|max:255',
             'name_of_agency_firm' => 'required|string|max:255',
@@ -24,7 +25,8 @@ class ApplicantController extends Controller
             'name_of_head_of_agency_firm' => 'required|string|max:255',
             'business_address' => 'required|string|max:255',
             'contact_nos' => 'required|string|max:255',
-            'website_email_address' => 'required|string|max:255',
+            'email_address' => 'required|email|max:255|unique:users,email',
+            'website' => 'nullable|url|max:255',
         ]);
 
         $applicant = Customer::create($validated);

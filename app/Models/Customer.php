@@ -36,7 +36,12 @@ class Customer extends Model
         'name_of_head_of_agency_firm',
         'business_address',
         'contact_nos',
-        'website_email_address',
+        'email_address',
+        'website',
+        'status',
+        'decision_date',
+        'decided_by',
+        'user_id',
         'accomplished_by',
         'accomplished_date',
         'remarks_action_taken',
@@ -56,9 +61,26 @@ class Customer extends Model
     {
         return [
             'date_established' => 'date',
+            'decision_date' => 'datetime',
             'accomplished_date' => 'date',
             'handled_date' => 'date',
             'noted_date' => 'date',
         ];
+    }
+
+    /**
+     * Get the user (cooperator) associated with this application.
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the admin who decided on this application.
+     */
+    public function decidedByUser()
+    {
+        return $this->belongsTo(User::class, 'decided_by');
     }
 }
