@@ -22,18 +22,19 @@ const BusinessInfo: React.FC<BusinessInfoProps> = ({
     const websiteRegex =
         /^(https?:\/\/)?([\w-]+\.)+[\w-]{2,}(\/[\w\-._~:/?#[\]@!$&'()*+,;=]*)?$/i;
 
-    const isEmail = (value: string) => emailRegex.test(value);
-    const isWebsite = (value: string) => websiteRegex.test(value);
-
-    const isInvalidWebOrEmail =
-        submitted &&
-        formData.webEmailAddress.trim() !== "" &&
-        !isEmail(formData.webEmailAddress) &&
-        !isWebsite(formData.webEmailAddress);
+    const isValidEmail = formData.emailAddress.trim() === "" || emailRegex.test(formData.emailAddress);
+    const isValidWebsite = formData.website.trim() === "" || websiteRegex.test(formData.website);
 
     return (
-        <>
-            <h2 className="text-lg font-semibold mb-4">Business Information</h2>
+        <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-8 border border-green-200 shadow-sm">
+            <div className="flex items-center gap-3 mb-6">
+                <div className="bg-green-600 text-white rounded-lg p-2">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                </div>
+                <h2 className="text-2xl font-bold text-gray-800">Business Information</h2>
+            </div>
 
             {/* Agency / Firm */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -239,33 +240,53 @@ const BusinessInfo: React.FC<BusinessInfoProps> = ({
                         )}
                 </div>
 
-                {/* Website / Email */}
+                {/* Email Address */}
                 <div>
                     <label className="form-label">
-                        Website/Email Address{" "}
+                        Email Address{" "}
                         <span className="text-red-500">*</span>
                     </label>
                     <input
-                        type="text"
-                        name="webEmailAddress"
-                        value={formData.webEmailAddress}
+                        type="email"
+                        name="emailAddress"
+                        value={formData.emailAddress}
                         onChange={handleChange}
-                        placeholder="e.g. johndoe@email.com or https://mybusiness.com"
-                        className={inputClass("webEmailAddress")}
+                        placeholder="e.g. johndoe@email.com"
+                        className={inputClass("emailAddress")}
                     />
-                    {submitted && !formData.webEmailAddress && (
+                    {submitted && !formData.emailAddress && (
                         <p className="text-red-500 text-sm mt-1">
                             This field is required
                         </p>
                     )}
-                    {isInvalidWebOrEmail && (
+                    {submitted && formData.emailAddress && !isValidEmail && (
                         <p className="text-red-500 text-sm mt-1">
-                            Your website/email address is invalid
+                            Please enter a valid email address
                         </p>
                     )}
                 </div>
             </div>
-        </>
+
+            {/* Website (Optional) */}
+            <div className="mt-8">
+                <label className="form-label">
+                    Website (Optional)
+                </label>
+                <input
+                    type="text"
+                    name="website"
+                    value={formData.website}
+                    onChange={handleChange}
+                    placeholder="e.g. https://mybusiness.com"
+                    className="form-input border border-gray-400 rounded px-3 py-2 w-full"
+                />
+                {submitted && formData.website && !isValidWebsite && (
+                    <p className="text-red-500 text-sm mt-1">
+                        Please enter a valid website URL
+                    </p>
+                )}
+            </div>
+        </div>
     );
 };
 

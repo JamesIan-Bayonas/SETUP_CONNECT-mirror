@@ -13,10 +13,51 @@ Route::get('/', function () {
     return auth()->check() ? redirect('/dashboard') : redirect('/login');
 });
 
+// Application success page (public)
+Route::get('/application-success', function () {
+    return inertia('CustomerApplications/ApplicationSuccess');
+})->name('application.success');
+
 // Authentication routes
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'create'])->name('login');
     Route::post('/login', [LoginController::class, 'store']);
+    
+    // Password Reset Routes
+    Route::get('/forgot-password', function () {
+        return inertia('Auth/ForgotPassword');
+    })->name('password.request');
+    
+    Route::post('/forgot-password', function (\Illuminate\Http\Request $request) {
+        $request->validate(['email' => 'required|email']);
+        $status = \Illuminate\Support\Facades\Password::sendResetLink($request->only('email'));
+        return $status === \Illuminate\Support\Facades\Password::RESET_LINK_SENT
+            ? back()->with(['status' => __($status)])
+            : back()->withErrors(['email' => __($status)]);
+    })->name('password.email');
+    
+    Route::get('/reset-password/{token}', function (string $token) {
+        return inertia('Auth/ResetPassword', ['token' => $token, 'email' => request('email')]);
+    })->name('password.reset');
+    
+    Route::post('/reset-password', function (\Illuminate\Http\Request $request) {
+        $request->validate([
+            'token' => 'required',
+            'email' => 'required|email',
+            'password' => 'required|min:8|confirmed',
+        ]);
+        
+        $status = \Illuminate\Support\Facades\Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function ($user, $password) {
+                $user->forceFill(['password' => \Illuminate\Support\Facades\Hash::make($password)])->save();
+            }
+        );
+        
+        return $status === \Illuminate\Support\Facades\Password::PASSWORD_RESET
+            ? redirect()->route('login')->with('status', __($status))
+            : back()->withErrors(['email' => [__($status)]]);
+    })->name('password.update');
 });
 
 Route::middleware('auth')->group(function () {
@@ -31,11 +72,22 @@ Route::middleware('auth')->group(function () {
     });
 });
 
-  // Customer Approval Form
-  Route::get('/customerapprovalform', [CustomerApprovalController::class, 'index'])
-        ->name('customerapprovalform');
-
+// Public application form (no auth required)
 Route::get('/application-form', [CustomerController::class, 'index'])->name('customer.form');
+
+// Customer Approval Management (authenticated users only)
+Route::middleware('auth')->group(function () {
+    Route::get('/customerapprovalform', [CustomerApprovalController::class, 'index'])
+        ->name('customerapprovalform');
+    Route::get('/customerapprovalform/{id}', [CustomerApprovalController::class, 'show'])
+        ->name('customer.show');
+    Route::post('/customerapprovalform/{id}/approve', [CustomerApprovalController::class, 'approve'])
+        ->name('customer.approve');
+    Route::post('/customerapprovalform/{id}/decline', [CustomerApprovalController::class, 'decline'])
+        ->name('customer.decline');
+    Route::delete('/customerapprovalform/{id}', [CustomerApprovalController::class, 'destroy'])
+        ->name('customer.destroy');
+});
 
 
 // Local dev route to test approval email dispatch
