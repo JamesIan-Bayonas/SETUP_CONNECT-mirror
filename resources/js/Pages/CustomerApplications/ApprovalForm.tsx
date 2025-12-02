@@ -42,29 +42,64 @@ export default function ApprovalForm({ applications }: Props) {
   const [processing, setProcessing] = useState<number | null>(null);
   const [viewingApplication, setViewingApplication] = useState<ApplicationDetails | null>(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
-  
+
+  // Helper to resolve fields from various possible API shapes
+  const getField = (obj: any, paths: Array<string | Array<string>>): string => {
+    for (const p of paths) {
+      if (Array.isArray(p)) {
+        // Nested path like ["business", "name_of_agency_firm"]
+        let cur: any = obj;
+        for (const key of p) {
+          if (cur && key in cur) {
+            cur = cur[key];
+          } else {
+            cur = undefined;
+            break;
+          }
+        }
+        if (cur !== undefined && cur !== null && cur !== "") return String(cur);
+      } else {
+        const val = obj?.[p];
+        if (val !== undefined && val !== null && val !== "") return String(val);
+      }
+    }
+    return "—";
+  };
+
+  // Normalize status strings to Title Case keys used in UI
+  const normalizeStatus = (s: string | undefined | null): "Pending" | "Approved" | "Declined" | "Unknown" => {
+    // Treat empty/undefined as Pending for display and actions
+    if (!s) return "Pending";
+    const v = String(s).trim().toLowerCase();
+    if (v === "pending") return "Pending";
+    if (v === "approved") return "Approved";
+    if (v === "declined" || v === "rejected") return "Declined";
+    return "Unknown";
+  };
+
   // Filter states
-  const [statusFilter, setStatusFilter] = useState<string>("Approved");
+  const [statusFilter, setStatusFilter] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [dateFilter, setDateFilter] = useState<string>("");
 
   // Filtered applications
   const filteredApplications = applications.filter((app) => {
-    const matchesStatus = statusFilter === "All" || app.status === statusFilter;
-    const matchesSearch = 
+    const appStatus = normalizeStatus(app.status);
+    const matchesStatus = statusFilter === "All" || appStatus === statusFilter;
+    const matchesSearch =
       app.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       app.agencyFirm.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesDate = !dateFilter || app.dateOfApplication === dateFilter;
-    
+
     return matchesStatus && matchesSearch && matchesDate;
   });
 
   // Status counts
   const statusCounts = {
     All: applications.length,
-    Pending: applications.filter(app => app.status === "Pending").length,
-    Approved: applications.filter(app => app.status === "Approved").length,
-    Declined: applications.filter(app => app.status === "Declined").length,
+    Pending: applications.filter(app => normalizeStatus(app.status) === "Pending").length,
+    Approved: applications.filter(app => normalizeStatus(app.status) === "Approved").length,
+    Declined: applications.filter(app => normalizeStatus(app.status) === "Declined").length,
   };
 
   const handleViewDetails = async (id: number) => {
@@ -72,7 +107,11 @@ export default function ApprovalForm({ applications }: Props) {
     try {
       const response = await fetch(`/customerapprovalform/${id}`);
       const data = await response.json();
-      setViewingApplication(data);
+      // Be resilient to different API shapes: {application}, {data}, or the object itself
+      const normalized = (data?.application || data?.data || data) as ApplicationDetails;
+      // Log for troubleshooting unknown shapes
+      console.debug("Customer application details payload:", data);
+      setViewingApplication(normalized);
     } catch (error) {
       console.error("Failed to fetch application details:", error);
       alert("Failed to load application details");
@@ -91,9 +130,9 @@ export default function ApprovalForm({ applications }: Props) {
     }
 
     setProcessing(id);
-    
+
     const action = decision === "Approved" ? "approve" : "decline";
-    
+
     router.post(
       `/customerapprovalform/${id}/${action}`,
       {},
@@ -116,7 +155,7 @@ export default function ApprovalForm({ applications }: Props) {
     }
 
     setProcessing(id);
-    
+
     router.delete(
       `/customerapprovalform/${id}`,
       {
@@ -212,14 +251,14 @@ export default function ApprovalForm({ applications }: Props) {
                 </div>
 
                 {/* Active Filters Display */}
-                {(searchQuery || dateFilter || statusFilter !== "Approved") && (
+                {(searchQuery || dateFilter || statusFilter !== "All") && (
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-sm text-gray-600">Active filters:</span>
-                    {statusFilter !== "Approved" && (
+                    {statusFilter !== "All" && (
                       <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
                         Status: {statusFilter}
                         <button
-                          onClick={() => setStatusFilter("Approved")}
+                          onClick={() => setStatusFilter("All")}
                           className="hover:text-blue-900"
                         >
                           ×
@@ -250,7 +289,7 @@ export default function ApprovalForm({ applications }: Props) {
                     )}
                     <button
                       onClick={() => {
-                        setStatusFilter("Approved");
+                        setStatusFilter("All");
                         setSearchQuery("");
                         setDateFilter("");
                       }}
@@ -304,17 +343,22 @@ export default function ApprovalForm({ applications }: Props) {
                             {new Date(app.dateOfApplication).toLocaleDateString()}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <span
-                              className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                app.status === "Approved"
+                            {(() => {
+                              const s = normalizeStatus(app.status);
+                              const cls =
+                                s === "Approved"
                                   ? "bg-green-100 text-green-800"
-                                  : app.status === "Declined"
+                                  : s === "Declined"
                                   ? "bg-red-100 text-red-800"
-                                  : "bg-yellow-100 text-yellow-800"
-                              }`}
-                            >
-                              {app.status}
-                            </span>
+                                  : s === "Pending"
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : "bg-gray-100 text-gray-800";
+                              return (
+                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${cls}`}>
+                                  {s}
+                                </span>
+                              );
+                            })()}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-center text-sm">
                             <button
@@ -328,16 +372,16 @@ export default function ApprovalForm({ applications }: Props) {
                             </button>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                            {app.status === "Pending" ? (
+                            {normalizeStatus(app.status) === "Pending" ? (
                               <div className="flex space-x-2 justify-center">
-                                <button 
+                                <button
                                   onClick={() => handleDecision(app.id, "Approved")}
                                   disabled={processing === app.id}
                                   className="bg-green-600 hover:bg-green-700 text-white font-bold py-1 px-3 rounded disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                   {processing === app.id ? "Processing..." : "Approve"}
                                 </button>
-                                <button 
+                                <button
                                   onClick={() => handleDecision(app.id, "Declined")}
                                   disabled={processing === app.id}
                                   className="bg-red-600 hover:bg-red-700 text-white font-bold py-1 px-3 rounded disabled:opacity-50 disabled:cursor-not-allowed"
@@ -441,36 +485,47 @@ export default function ApprovalForm({ applications }: Props) {
                   </svg>
                   Business Information
                 </h4>
+                {loadingDetails ? (
+                  <div className="text-sm text-gray-600">Loading details…</div>
+                ) : (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium text-gray-600">Agency/Firm</label>
-                    <p className="text-gray-900">{viewingApplication.name_of_agency_firm}</p>
+                    <p className="text-gray-900">{getField(viewingApplication, ["name_of_agency_firm", "agencyFirm", ["business", "name_of_agency_firm"], ["business", "agencyFirm"]])}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-600">Business of the Firm</label>
-                    <p className="text-gray-900">{viewingApplication.business_of_the_firm}</p>
+                    <p className="text-gray-900">{getField(viewingApplication, ["business_of_the_firm", "businessOfTheFirm", ["business", "business_of_the_firm"], ["business", "businessOfTheFirm"]])}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-600">Product Line</label>
-                    <p className="text-gray-900">{viewingApplication.product_line}</p>
+                    <p className="text-gray-900">{getField(viewingApplication, ["product_line", "productLine", ["business", "product_line"], ["business", "productLine"]])}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-600">Organization Type</label>
-                    <p className="text-gray-900">{viewingApplication.type_of_organization}</p>
+                    <p className="text-gray-900">{getField(viewingApplication, ["type_of_organization", "organizationType", ["business", "type_of_organization"], ["business", "organizationType"]])}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-600">Date Established</label>
-                    <p className="text-gray-900">{new Date(viewingApplication.date_established).toLocaleDateString()}</p>
+                    <p className="text-gray-900">
+                      {(() => {
+                        const dateStr = getField(viewingApplication, ["date_established", "dateEstablished", ["business", "date_established"], ["business", "dateEstablished"]]);
+                        if (dateStr === "—") return "—";
+                        const d = new Date(dateStr);
+                        return isNaN(d.getTime()) ? dateStr : d.toLocaleDateString();
+                      })()}
+                    </p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-600">Head of Agency/Firm</label>
-                    <p className="text-gray-900">{viewingApplication.name_of_head_of_agency_firm}</p>
+                    <p className="text-gray-900">{getField(viewingApplication, ["name_of_head_of_agency_firm", "headOfAgencyFirm", ["business", "name_of_head_of_agency_firm"], ["business", "headOfAgencyFirm"]])}</p>
                   </div>
                   <div className="col-span-2">
                     <label className="text-sm font-medium text-gray-600">Business Address</label>
-                    <p className="text-gray-900">{viewingApplication.business_address}</p>
+                    <p className="text-gray-900">{getField(viewingApplication, ["business_address", "businessAddress", ["business", "business_address"], ["business", "businessAddress"]])}</p>
                   </div>
                 </div>
+                )}
               </div>
 
               {/* Contact Information */}
@@ -510,15 +565,22 @@ export default function ApprovalForm({ applications }: Props) {
                   <div>
                     <label className="text-sm font-medium text-gray-600">Status</label>
                     <p>
-                      <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${
-                        viewingApplication.status === "Approved"
-                          ? "bg-green-100 text-green-800"
-                          : viewingApplication.status === "Declined"
-                          ? "bg-red-100 text-red-800"
-                          : "bg-yellow-100 text-yellow-800"
-                      }`}>
-                        {viewingApplication.status}
-                      </span>
+                      {(() => {
+                        const s = normalizeStatus(viewingApplication.status);
+                        const cls =
+                          s === "Approved"
+                            ? "bg-green-100 text-green-800"
+                            : s === "Declined"
+                            ? "bg-red-100 text-red-800"
+                            : s === "Pending"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : "bg-gray-100 text-gray-800";
+                        return (
+                          <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${cls}`}>
+                            {s}
+                          </span>
+                        );
+                      })()}
                     </p>
                   </div>
                   <div>
@@ -541,8 +603,8 @@ export default function ApprovalForm({ applications }: Props) {
               >
                 Delete Application
               </button>
-              
-              {viewingApplication.status === "Pending" && (
+
+              {normalizeStatus(viewingApplication.status) === "Pending" && (
                 <div className="flex gap-3">
                   <button
                     onClick={() => {
