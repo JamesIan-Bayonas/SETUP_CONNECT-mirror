@@ -5,6 +5,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerApprovalController;
+use App\Http\Controllers\SetUpCustomerController;
 use App\Events\CustomerApplicationApproved;
 use Illuminate\Support\Facades\Route;
 
@@ -87,6 +88,16 @@ Route::middleware('auth')->group(function () {
         ->name('customer.decline');
     Route::delete('/customerapprovalform/{id}', [CustomerApprovalController::class, 'destroy'])
         ->name('customer.destroy');
+
+    // SetUpCustomer UI and API
+    Route::get('/setupcustomer', [SetUpCustomerController::class, 'index'])
+        ->name('setupcustomer.index');
+    Route::get('/setupcustomer/{id}', [SetUpCustomerController::class, 'show'])
+        ->name('setupcustomer.show');
+    Route::get('/setupcustomer/{id}/edit', [SetUpCustomerController::class, 'edit'])
+        ->name('setupcustomer.edit');
+    Route::delete('/setupcustomer/{id}', [SetUpCustomerController::class, 'destroy'])
+        ->name('setupcustomer.destroy');
 });
 
 
