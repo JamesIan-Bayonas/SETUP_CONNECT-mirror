@@ -160,7 +160,7 @@ export default function SetUpCustomerView({ customers }: { customers: SetUpCusto
             <div className="p-6">
               {/* Filters */}
               <div className="mb-6 space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-[repeat(3,_1fr)_auto] gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Status</label>
                     <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg">

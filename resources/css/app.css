@@ -8,8 +8,4 @@
     }
 }
 
-@media (min-width: 768px) {
-    .md\:grid-cols-4 {
-        grid-template-columns: repeat(3, 1fr) auto !important;
-    }
-}
+
