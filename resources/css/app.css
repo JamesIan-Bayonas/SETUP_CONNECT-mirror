@@ -7,3 +7,9 @@
         @apply block text-sm font-medium text-gray-700 mb-2; /* increased from mb-1 → mb-2 */
     }
 }
+
+@media (min-width: 768px) {
+    .md\:grid-cols-4 {
+        grid-template-columns: repeat(3, 1fr) auto !important;
+    }
+}

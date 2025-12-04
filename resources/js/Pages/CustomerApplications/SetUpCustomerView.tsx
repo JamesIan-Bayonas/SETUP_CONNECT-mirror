@@ -2,6 +2,7 @@
 import { Head, router } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { useState } from "react";
+import AddCustomerModal from "@/Pages/CustomerApplications/AddCustomerModal";
 
 interface SetUpCustomerBusiness {
   id?: number;
@@ -50,6 +51,7 @@ export default function SetUpCustomerView({ customers }: { customers: SetUpCusto
   const [processing, setProcessing] = useState<number | null>(null);
   const [viewing, setViewing] = useState<CustomerDetails | null>(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
+  const [showModal, setShowModal] = useState(false);
 
   // Filters
   const [statusFilter, setStatusFilter] = useState<string>("All");
@@ -158,7 +160,7 @@ export default function SetUpCustomerView({ customers }: { customers: SetUpCusto
             <div className="p-6">
               {/* Filters */}
               <div className="mb-6 space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Status</label>
                     <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg">
@@ -167,7 +169,7 @@ export default function SetUpCustomerView({ customers }: { customers: SetUpCusto
                       <option value="Active">Active ({statusCounts.Active})</option>
                       <option value="Inactive">Inactive ({statusCounts.Inactive})</option>
                     </select>
-                  </div>
+                   </div>                  
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Search</label>
@@ -180,6 +182,15 @@ export default function SetUpCustomerView({ customers }: { customers: SetUpCusto
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Date</label>
                     <input type="date" value={dateFilter} onChange={(e) => setDateFilter(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+                  </div>
+
+                  <div className="w-full">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">&nbsp;</label>
+                    <button
+                      onClick={() => setShowModal(true)}
+                      className="w-full py-[11px] px-4 bg-green-600 hover:bg-green-700 text-white font-semibold text-sm rounded-lg">
+                      Add Customer
+                    </button>
                   </div>
                 </div>
 
@@ -235,7 +246,7 @@ export default function SetUpCustomerView({ customers }: { customers: SetUpCusto
                               <button onClick={() => handleEdit(c.id)} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded">Edit</button>
                               <button onClick={() => handleView(c.id)} className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-1 px-3 rounded">Details</button>
                             </div>
-                          </td>
+                          </td>                         
 
                           <td className="px-6 py-4 whitespace-nowrap text-center text-sm">
                             <button onClick={() => handleDelete(c.id, c.customer_name)} disabled={processing === c.id} className="text-red-600 hover:text-red-900 font-medium disabled:opacity-50">
@@ -246,7 +257,7 @@ export default function SetUpCustomerView({ customers }: { customers: SetUpCusto
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={7} className="px-6 py-4 text-center text-sm text-gray-500">No customers found.</td>
+                        <td colSpan={8} className="px-6 py-4 text-center text-sm text-gray-500">No customers found.</td>
                       </tr>
                     )}
                   </tbody>
@@ -401,6 +412,8 @@ export default function SetUpCustomerView({ customers }: { customers: SetUpCusto
           </div>
         </div>
       )}
+
+      <AddCustomerModal isOpen={showModal} onClose={() => setShowModal(false)} />
     </AuthenticatedLayout>
   );
 }
