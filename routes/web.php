@@ -5,6 +5,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerApprovalController;
+use App\Http\Controllers\SetUpCustomerController;
 use App\Events\CustomerApplicationApproved;
 use Illuminate\Support\Facades\Route;
 
@@ -87,6 +88,16 @@ Route::middleware('auth')->group(function () {
         ->name('customer.decline');
     Route::delete('/customerapprovalform/{id}', [CustomerApprovalController::class, 'destroy'])
         ->name('customer.destroy');
+    
+    // Setup Customer Management
+    Route::get('/setupcustomers', [SetUpCustomerController::class, 'index'])
+        ->name('setupcustomers');
+    Route::get('/setupcustomers/{id}', [SetUpCustomerController::class, 'show'])
+        ->name('setupcustomers.show');
+    Route::put('/setupcustomers/{id}', [SetUpCustomerController::class, 'update'])
+        ->name('setupcustomers.update');
+    Route::post('/setupcustomers/{id}/toggle-active', [SetUpCustomerController::class, 'toggleActive'])
+        ->name('setupcustomers.toggle');
 });
 
 
