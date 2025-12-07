@@ -1,0 +1,430 @@
+import { Head, router } from "@inertiajs/react";
+import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
+import { useState } from "react";
+
+interface SetUpCustomer {
+  id: number;
+  customerName: string;
+  email: string;
+  designation: string;
+  businessCount: number;
+  isActive: boolean;
+  createdAt: string;
+}
+
+interface Business {
+  id: number;
+  name_of_agency_firm: string;
+  business_of_the_firm: string;
+  product_line: string;
+  type_of_organization: string;
+  date_established: string;
+  name_of_head_of_agency_firm: string;
+  business_address: string;
+  contact_nos: string;
+  email_address: string;
+  website?: string;
+  is_active: boolean;
+  created_at: string;
+}
+
+interface CustomerDetails {
+  id: number;
+  first_name: string;
+  middle_name?: string;
+  last_name: string;
+  suffix?: string;
+  full_name: string;
+  designation_position: string;
+  residential_address: string;
+  is_active: boolean;
+  created_at: string;
+  user: {
+    id: number;
+    name: string;
+    email: string;
+  };
+  businesses: Business[];
+}
+
+interface Props {
+  customers: SetUpCustomer[];
+}
+
+export default function SetUpCustomerView({ customers }: Props) {
+  const [viewingCustomer, setViewingCustomer] = useState<CustomerDetails | null>(null);
+  const [loadingDetails, setLoadingDetails] = useState(false);
+  
+  // Filter states
+  const [statusFilter, setStatusFilter] = useState<string>("All");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+
+  // Filtered customers
+  const filteredCustomers = customers.filter((customer) => {
+    const matchesStatus = 
+      statusFilter === "All" || 
+      (statusFilter === "Active" && customer.isActive) || 
+      (statusFilter === "Inactive" && !customer.isActive);
+    const matchesSearch = 
+      customer.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      customer.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      customer.designation.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    return matchesStatus && matchesSearch;
+  });
+
+  // Status counts
+  const statusCounts = {
+    All: customers.length,
+    Active: customers.filter(c => c.isActive).length,
+    Inactive: customers.filter(c => !c.isActive).length,
+  };
+
+  const handleViewDetails = async (id: number) => {
+    setLoadingDetails(true);
+    try {
+      const response = await fetch(`/setupcustomers/${id}`);
+      const data = await response.json();
+      setViewingCustomer(data);
+    } catch (error) {
+      console.error("Failed to fetch customer details:", error);
+      alert("Failed to load customer details");
+    } finally {
+      setLoadingDetails(false);
+    }
+  };
+
+  const closeModal = () => {
+    setViewingCustomer(null);
+  };
+
+  return (
+    <AuthenticatedLayout
+      header={
+        <div className="flex justify-between items-center">
+          <h2 className="font-semibold text-xl text-gray-800 leading-tight">
+            Setup Customer Management
+          </h2>
+        </div>
+      }
+    >
+      <Head title="Setup Customer Management" />
+
+      <div className="py-12">
+        <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+          <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+            <div className="p-6">
+              {/* Filters Section */}
+              <div className="mb-6 space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Status Filter */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Filter by Status
+                    </label>
+                    <div className="flex gap-2">
+                      {Object.entries(statusCounts).map(([status, count]) => (
+                        <button
+                          key={status}
+                          onClick={() => setStatusFilter(status)}
+                          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                            statusFilter === status
+                              ? "bg-blue-600 text-white"
+                              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                          }`}
+                        >
+                          {status} ({count})
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Search Filter */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Search
+                    </label>
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Search by name, email, or designation..."
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                {/* Active Filters Display */}
+                {(statusFilter !== "All" || searchQuery) && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="text-gray-600">Active filters:</span>
+                    {statusFilter !== "All" && (
+                      <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full">
+                        Status: {statusFilter}
+                      </span>
+                    )}
+                    {searchQuery && (
+                      <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full">
+                        Search: "{searchQuery}"
+                      </span>
+                    )}
+                    <button
+                      onClick={() => {
+                        setStatusFilter("All");
+                        setSearchQuery("");
+                      }}
+                      className="text-blue-600 hover:text-blue-800 font-medium"
+                    >
+                      Clear all
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Customer Name
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Email
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Designation
+                      </th>
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Businesses
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Created Date
+                      </th>
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {filteredCustomers.length > 0 ? (
+                      filteredCustomers.map((customer) => (
+                        <tr key={customer.id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm font-medium text-gray-900">
+                              {customer.customerName}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-900">{customer.email}</div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-900">{customer.designation}</div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-center">
+                            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                              {customer.businessCount}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span
+                              className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                customer.isActive
+                                  ? "bg-green-100 text-green-800"
+                                  : "bg-gray-100 text-gray-800"
+                              }`}
+                            >
+                              {customer.isActive ? "Active" : "Inactive"}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {new Date(customer.createdAt).toLocaleDateString()}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-center text-sm">
+                            <button
+                              onClick={() => handleViewDetails(customer.id)}
+                              className="text-blue-600 hover:text-blue-900 font-medium"
+                            >
+                              <svg className="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                              </svg>
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td
+                          colSpan={7}
+                          className="px-6 py-4 text-center text-sm text-gray-500"
+                        >
+                          No setup customers found.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Results Counter */}
+              <div className="flex justify-between items-center border-t border-gray-200 bg-white px-4 py-3 sm:px-6 mt-4">
+                <p className="text-sm text-gray-700">
+                  Showing {filteredCustomers.length} of {customers.length} result{customers.length !== 1 ? 's' : ''}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* View Details Modal */}
+      {viewingCustomer && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" onClick={closeModal}>
+          <div className="relative top-20 mx-auto p-8 border w-11/12 max-w-6xl shadow-2xl rounded-xl bg-white" onClick={(e) => e.stopPropagation()}>
+            {/* Modal Header */}
+            <div className="flex justify-between items-center border-b pb-4 mb-6">
+              <h3 className="text-2xl font-bold text-gray-900">
+                Customer Details
+              </h3>
+              <button
+                onClick={closeModal}
+                className="text-gray-400 hover:text-gray-600 text-3xl font-bold"
+              >
+                &times;
+              </button>
+            </div>
+
+            {/* Customer Information */}
+            <div className="mb-6">
+              <h4 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">
+                Personal Information
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Full Name</label>
+                  <p className="text-gray-900">{viewingCustomer.full_name}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Designation/Position</label>
+                  <p className="text-gray-900">{viewingCustomer.designation_position}</p>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="text-sm font-medium text-gray-600">Residential Address</label>
+                  <p className="text-gray-900">{viewingCustomer.residential_address}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Email</label>
+                  <p className="text-gray-900">{viewingCustomer.user.email}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Status</label>
+                  <p>
+                    <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${
+                      viewingCustomer.is_active
+                        ? "bg-green-100 text-green-800"
+                        : "bg-gray-100 text-gray-800"
+                    }`}>
+                      {viewingCustomer.is_active ? "Active" : "Inactive"}
+                    </span>
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Businesses Section */}
+            <div className="mb-6">
+              <div className="flex justify-between items-center mb-4">
+                <h4 className="text-lg font-semibold text-gray-800 border-b pb-2">
+                  Business Information ({viewingCustomer.businesses.length})
+                </h4>
+              </div>
+
+              {viewingCustomer.businesses.length > 0 ? (
+                <div className="space-y-4">
+                  {viewingCustomer.businesses.map((business, index) => (
+                    <div key={business.id} className="border rounded-lg p-4 bg-gray-50 hover:bg-gray-100 transition">
+                      <div className="flex justify-between items-start mb-3">
+                        <h5 className="text-md font-semibold text-blue-600">
+                          Business #{index + 1}: {business.name_of_agency_firm}
+                        </h5>
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          business.is_active
+                            ? "bg-green-100 text-green-800"
+                            : "bg-gray-100 text-gray-800"
+                        }`}>
+                          {business.is_active ? "Active" : "Inactive"}
+                        </span>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <label className="font-medium text-gray-600">Business Type</label>
+                          <p className="text-gray-900">{business.business_of_the_firm}</p>
+                        </div>
+                        <div>
+                          <label className="font-medium text-gray-600">Product Line</label>
+                          <p className="text-gray-900">{business.product_line}</p>
+                        </div>
+                        <div>
+                          <label className="font-medium text-gray-600">Organization Type</label>
+                          <p className="text-gray-900">{business.type_of_organization}</p>
+                        </div>
+                        <div>
+                          <label className="font-medium text-gray-600">Date Established</label>
+                          <p className="text-gray-900">{new Date(business.date_established).toLocaleDateString()}</p>
+                        </div>
+                        <div>
+                          <label className="font-medium text-gray-600">Head of Agency</label>
+                          <p className="text-gray-900">{business.name_of_head_of_agency_firm}</p>
+                        </div>
+                        <div>
+                          <label className="font-medium text-gray-600">Contact Numbers</label>
+                          <p className="text-gray-900">{business.contact_nos}</p>
+                        </div>
+                        <div>
+                          <label className="font-medium text-gray-600">Email</label>
+                          <p className="text-gray-900">{business.email_address}</p>
+                        </div>
+                        <div>
+                          <label className="font-medium text-gray-600">Website</label>
+                          <p className="text-gray-900">
+                            {business.website ? (
+                              <a href={business.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                                {business.website}
+                              </a>
+                            ) : (
+                              "N/A"
+                            )}
+                          </p>
+                        </div>
+                        <div className="md:col-span-2">
+                          <label className="font-medium text-gray-600">Business Address</label>
+                          <p className="text-gray-900">{business.business_address}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 text-center py-4">No businesses found for this customer.</p>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex justify-end items-center mt-6 pt-4 border-t">
+              <button
+                onClick={closeModal}
+                className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-6 rounded-lg transition"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </AuthenticatedLayout>
+  );
+}
