@@ -1,6 +1,8 @@
 import { Head, router } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { useState } from "react";
+import AddCustomerModal from "@/Pages/CustomerApplications/AddCutomerModal";
+
 
 interface SetUpCustomer {
   id: number;
@@ -55,6 +57,8 @@ export default function SetUpCustomerView({ customers }: Props) {
   const [viewingCustomer, setViewingCustomer] = useState<CustomerDetails | null>(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
   
+    // ADDED: modal state for Add Customer button
+  const [showModal, setShowModal] = useState(false);
   // Filter states
   const [statusFilter, setStatusFilter] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -116,7 +120,7 @@ export default function SetUpCustomerView({ customers }: Props) {
             <div className="p-6">
               {/* Filters Section */}
               <div className="mb-6 space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+               <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-4 items-end">
                   {/* Status Filter */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -152,6 +156,15 @@ export default function SetUpCustomerView({ customers }: Props) {
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
+                    <div className="w-full">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">&nbsp;</label>
+                    <button
+                      onClick={() => setShowModal(true)}
+                      className="w-full py-[11px] px-4 bg-green-600 hover:bg-green-700 text-white font-semibold text-sm rounded-lg">
+                      Add SetUp Customer
+                    </button>
+                  </div>
+                
                 </div>
 
                 {/* Active Filters Display */}
@@ -425,6 +438,7 @@ export default function SetUpCustomerView({ customers }: Props) {
           </div>
         </div>
       )}
+      <AddCustomerModal isOpen={showModal} onClose={() => setShowModal(false)} />
     </AuthenticatedLayout>
   );
 }
