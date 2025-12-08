@@ -23,12 +23,12 @@ Route::get('/application-success', function () {
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'create'])->name('login');
     Route::post('/login', [LoginController::class, 'store']);
-    
+
     // Password Reset Routes
     Route::get('/forgot-password', function () {
         return inertia('Auth/ForgotPassword');
     })->name('password.request');
-    
+
     Route::post('/forgot-password', function (\Illuminate\Http\Request $request) {
         $request->validate(['email' => 'required|email']);
         $status = \Illuminate\Support\Facades\Password::sendResetLink($request->only('email'));
@@ -36,25 +36,25 @@ Route::middleware('guest')->group(function () {
             ? back()->with(['status' => __($status)])
             : back()->withErrors(['email' => __($status)]);
     })->name('password.email');
-    
+
     Route::get('/reset-password/{token}', function (string $token) {
         return inertia('Auth/ResetPassword', ['token' => $token, 'email' => request('email')]);
     })->name('password.reset');
-    
+
     Route::post('/reset-password', function (\Illuminate\Http\Request $request) {
         $request->validate([
             'token' => 'required',
             'email' => 'required|email',
             'password' => 'required|min:8|confirmed',
         ]);
-        
+
         $status = \Illuminate\Support\Facades\Password::reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
             function ($user, $password) {
                 $user->forceFill(['password' => \Illuminate\Support\Facades\Hash::make($password)])->save();
             }
         );
-        
+
         return $status === \Illuminate\Support\Facades\Password::PASSWORD_RESET
             ? redirect()->route('login')->with('status', __($status))
             : back()->withErrors(['email' => [__($status)]]);
@@ -63,10 +63,10 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
-    
+
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    
+
     // User management (only for admin and PSTO staff)
     Route::middleware('can:manage-users')->group(function () {
         Route::resource('users', UserController::class);
@@ -88,17 +88,22 @@ Route::middleware('auth')->group(function () {
         ->name('customer.decline');
     Route::delete('/customerapprovalform/{id}', [CustomerApprovalController::class, 'destroy'])
         ->name('customer.destroy');
-    
+
     // Setup Customer Management
+
     Route::get('/setupcustomers', [SetUpCustomerController::class, 'index'])
-        ->name('setupcustomers');
+        ->name('setupcustomers'); // Fixed: removed the stray 'a'
     Route::get('/setupcustomers/{id}', [SetUpCustomerController::class, 'show'])
         ->name('setupcustomers.show');
     Route::put('/setupcustomers/{id}', [SetUpCustomerController::class, 'update'])
         ->name('setupcustomers.update');
     Route::post('/setupcustomers/{id}/toggle-active', [SetUpCustomerController::class, 'toggleActive'])
         ->name('setupcustomers.toggle');
+    Route::post('/setupcustomer', [SetUpCustomerController::class, 'store'])
+        ->name('customer.add');
 });
+
+
 
 
 // Local dev route to test approval email dispatch

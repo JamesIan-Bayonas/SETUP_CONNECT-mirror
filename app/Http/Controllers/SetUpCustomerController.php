@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
+use App\Models\Customer;
 use App\Models\SetUpCustomer;
-use App\Models\SetUpCustomerBusiness;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Hash; 
 
 class SetUpCustomerController extends Controller
 {
@@ -110,4 +112,116 @@ class SetUpCustomerController extends Controller
 
         return redirect()->back()->with('success', 'Customer status updated successfully.');
     }
+
+    /**
+     * Add new customer (with authenticated user ID)
+     */
+    /**
+     * Add new customer (creates User, Customer Application, Setup Customer, and Business)
+     */
+   public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'first_name' => 'required|string|max:255',
+            'middle_name' => 'nullable|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'suffix' => 'nullable|string|max:255',
+            'designation_position' => 'required|string|max:255',
+            'residential_address' => 'required|string|max:255',
+            'name_of_agency_firm' => 'required|string|max:255',
+            'business_of_the_firm' => 'required|string|max:255',
+            'product_line' => 'required|string|max:255',
+            'type_of_organization' => 'required|string|max:255',
+            'date_established' => 'required|date',
+            'name_of_head_of_agency_firm' => 'required|string|max:255',
+            'business_address' => 'required|string|max:255',
+            'contact_nos' => 'required|string|max:255',
+            'email_address' => 'required|email|max:255|unique:users,email',
+            'website' => 'nullable|url|max:255',
+        ]);
+
+        $adminId = auth()->id();
+
+        if (!$adminId) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        try {
+            // 1. Create User account for the customer
+            $user = User::create([
+                'name' => trim("{$validated['first_name']} {$validated['last_name']}"),
+                'email' => $validated['email_address'],
+                'password' => Hash::make('ChangeMe123!'), // Default password - customer should change
+                'user_type' => 'cooperator',
+                'is_active' => true,
+            ]);
+
+            // 2. Create Customer Application record
+            $customerApplication = Customer::create([
+                'first_name' => $validated['first_name'],
+                'middle_name' => $validated['middle_name'],
+                'last_name' => $validated['last_name'],
+                'suffix' => $validated['suffix'],
+                'designation_position' => $validated['designation_position'],
+                'residential_address' => $validated['residential_address'],
+                'name_of_agency_firm' => $validated['name_of_agency_firm'],
+                'business_of_the_firm' => $validated['business_of_the_firm'],
+                'product_line' => $validated['product_line'],
+                'type_of_organization' => $validated['type_of_organization'],
+                'date_established' => $validated['date_established'],
+                'name_of_head_of_agency_firm' => $validated['name_of_head_of_agency_firm'],
+                'business_address' => $validated['business_address'],
+                'contact_nos' => $validated['contact_nos'],
+                'email_address' => $validated['email_address'],
+                'website' => $validated['website'],
+                'status' => 'Approved',
+                'decision_date' => now(),
+                'decided_by' => $adminId,
+                'user_id' => $user->id,
+            ]);
+
+            // 3. Create Setup Customer record
+            $setupCustomer = SetUpCustomer::create([
+                'first_name' => $validated['first_name'],
+                'middle_name' => $validated['middle_name'],
+                'last_name' => $validated['last_name'],
+                'suffix' => $validated['suffix'],
+                'designation_position' => $validated['designation_position'],
+                'residential_address' => $validated['residential_address'],
+                'user_id' => $user->id,
+                'customer_application_id' => $customerApplication->id,
+                'is_active' => true,
+            ]);
+
+            // 4. Create Setup Customer Business record
+            $setupCustomer->businesses()->create([
+                'name_of_agency_firm' => $validated['name_of_agency_firm'],
+                'business_of_the_firm' => $validated['business_of_the_firm'],
+                'product_line' => $validated['product_line'],
+                'type_of_organization' => $validated['type_of_organization'],
+                'date_established' => $validated['date_established'],
+                'name_of_head_of_agency_firm' => $validated['name_of_head_of_agency_firm'],
+                'business_address' => $validated['business_address'],
+                'contact_nos' => $validated['contact_nos'],
+                'email_address' => $validated['email_address'],
+                'website' => $validated['website'],
+                'is_active' => true,
+            ]);
+
+            $setupCustomer->load('businesses', 'user');
+
+            return response()->json([
+                'message' => 'Customer added successfully!',
+                'data' => $setupCustomer
+            ], 201);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to create customer',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+
 }
