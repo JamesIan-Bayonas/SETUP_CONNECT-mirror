@@ -2,7 +2,8 @@ import { Head, router } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { useState } from "react";
 import AddCustomerModal from "@/Pages/CustomerApplications/AddCutomerModal";
-
+import { usePage } from "@inertiajs/react";
+import { useEffect } from "react";
 
 interface SetUpCustomer {
   id: number;
@@ -56,8 +57,34 @@ interface Props {
 export default function SetUpCustomerView({ customers }: Props) {
   const [viewingCustomer, setViewingCustomer] = useState<CustomerDetails | null>(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
-  
-    // ADDED: modal state for Add Customer button
+
+  const { props: pageProps } = usePage();
+  const flash = pageProps?.flash as { success?: string };
+
+  // success modal state
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // show modal when server sent flash via Inertia redirect
+  useEffect(() => {
+    if (flash?.success) {
+      setSuccessMessage(flash.success);
+      setShowSuccess(true);
+    }
+  }, [flash?.success]);
+
+  useEffect(() => {
+    function onCreated(e: any) {
+      const msg = e?.detail?.message ?? 'Customer added successfully';
+      setSuccessMessage(msg);
+      setShowSuccess(true);
+    }
+
+    window.addEventListener('setupcustomer:created', onCreated);
+    return () => window.removeEventListener('setupcustomer:created', onCreated);
+  }, []);
+
+  // ADDED: modal state for Add Customer button
   const [showModal, setShowModal] = useState(false);
   // Filter states
   const [statusFilter, setStatusFilter] = useState<string>("All");
@@ -65,15 +92,15 @@ export default function SetUpCustomerView({ customers }: Props) {
 
   // Filtered customers
   const filteredCustomers = customers.filter((customer) => {
-    const matchesStatus = 
-      statusFilter === "All" || 
-      (statusFilter === "Active" && customer.isActive) || 
+    const matchesStatus =
+      statusFilter === "All" ||
+      (statusFilter === "Active" && customer.isActive) ||
       (statusFilter === "Inactive" && !customer.isActive);
-    const matchesSearch = 
+    const matchesSearch =
       customer.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       customer.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       customer.designation.toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     return matchesStatus && matchesSearch;
   });
 
@@ -120,7 +147,7 @@ export default function SetUpCustomerView({ customers }: Props) {
             <div className="p-6">
               {/* Filters Section */}
               <div className="mb-6 space-y-4">
-               <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-4 items-end">
+                <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-4 items-end">
                   {/* Status Filter */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -156,7 +183,7 @@ export default function SetUpCustomerView({ customers }: Props) {
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
-                    <div className="w-full">
+                  <div className="w-full">
                     <label className="block text-sm font-medium text-gray-700 mb-2">&nbsp;</label>
                     <button
                       onClick={() => setShowModal(true)}
@@ -164,7 +191,7 @@ export default function SetUpCustomerView({ customers }: Props) {
                       Add SetUp Customer
                     </button>
                   </div>
-                
+
                 </div>
 
                 {/* Active Filters Display */}
@@ -438,7 +465,28 @@ export default function SetUpCustomerView({ customers }: Props) {
           </div>
         </div>
       )}
+
       <AddCustomerModal isOpen={showModal} onClose={() => setShowModal(false)} />
+
+      {/* Success modal (custom, no external lib) */}
+      {showSuccess && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm text-center">
+            <h2 className="text-xl font-bold text-green-600 mb-2">Success</h2>
+            <p className="text-gray-700 mb-4">{successMessage ?? flash?.success}</p>
+
+            <button
+              onClick={() => {
+                setShowSuccess(false);
+                router.reload();
+              }}
+              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
     </AuthenticatedLayout>
   );
 }

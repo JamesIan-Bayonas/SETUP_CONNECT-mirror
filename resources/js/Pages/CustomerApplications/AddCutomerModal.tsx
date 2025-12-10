@@ -80,8 +80,14 @@ const AddCustomerModal: React.FC<AddCustomerModalProps> = ({ isOpen, onClose }) 
         website: formData.website,
       };
 
-      await axios.post("/setupcustomer", payload); // Adjust endpoint if needed
-      alert("Customer added successfully!");
+      const res = await axios.post("/setupcustomer", payload);
+
+      window.dispatchEvent(
+        new CustomEvent("setupcustomer:created", {
+          detail: { message: res?.data?.message ?? "Customer added successfully" },
+        })
+      );
+
       onClose();
       setFormData({
         firstName: "",

@@ -125,169 +125,145 @@ class SetUpCustomerController extends Controller
      * Add new customer (creates User, Customer Application, Setup Customer, and Business)
      */
    public function store(Request $request)
-    {
-        if (!auth()->check()) {
-            return response()->json(['message' => 'Unauthenticated.'], 401);
-        }
+{
+    if (!auth()->check()) {
+        return response()->json(['message' => 'Unauthenticated.'], 401);
+    }
 
-        try {
-            $validated = $request->validate([
-                'first_name' => 'required|string|max:255',
-                'middle_name' => 'nullable|string|max:255',
-                'last_name' => 'required|string|max:255',
-                'suffix' => 'nullable|string|max:50',
-                'designation_position' => 'required|string|max:255',
-                'residential_address' => 'required|string',
-                'customer_application_id' => 'nullable|integer|exists:customer_applications,id',
-                'name_of_agency_firm' => 'required|string|max:255',
-                'business_of_the_firm' => 'required|string',
-                'product_line' => 'required|string',
-                'type_of_organization' => 'required|string|max:100',
-                'date_established' => 'nullable|date',
-                'name_of_head_of_agency_firm' => 'required|string|max:255',
-                'business_address' => 'required|string',
-                'contact_nos' => 'required|string|max:255',
-                'email_address' => 'required|email|max:255',
-                'website' => 'nullable|url|max:255',
-            ]);
+    try {
+        $validated = $request->validate([
+            'first_name' => 'required|string|max:255',
+            'middle_name' => 'nullable|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'suffix' => 'nullable|string|max:50',
+            'designation_position' => 'required|string|max:255',
+            'residential_address' => 'required|string',
+            // removed customer_application_id rule as it's no longer used
+            'name_of_agency_firm' => 'required|string|max:255',
+            'business_of_the_firm' => 'required|string',
+            'product_line' => 'required|string',
+            'type_of_organization' => 'required|string|max:100',
+            'date_established' => 'nullable|date',
+            'name_of_head_of_agency_firm' => 'required|string|max:255',
+            'business_address' => 'required|string',
+            'contact_nos' => 'required|string|max:255',
+            'email_address' => 'required|email|max:255',
+            'website' => 'nullable|url|max:255',
+        ]);
 
-            DB::beginTransaction();
+        DB::beginTransaction();
 
-            $adminId = auth()->id();
+        $adminId = auth()->id();
 
-            // 1) Create or reuse user by email
-            $user = User::where('email', $validated['email_address'])->first();
-            $createdNewUser = false;
+        // 1) Create or reuse user by email
+        $user = User::where('email', $validated['email_address'])->first();
+        $createdNewUser = false;
 
-            if (!$user) {
-                $randomPassword = Str::random(16);
-                $user = User::create([
-                    'name' => trim("{$validated['first_name']} {$validated['middle_name']} {$validated['last_name']}"),
-                    'email' => $validated['email_address'],
-                    'password' => Hash::make($randomPassword),
-                    'user_type' => 'cooperator',
-                    'is_active' => true,
-                ]);
-                $createdNewUser = true;
-            }
-
-            // 2) Create or approve customer application
-            $appId = $validated['customer_application_id'] ?? null;
-            $customerApplication = null;
-
-            if ($appId) {
-                $customerApplication = Customer::find($appId);
-
-                if ($customerApplication && $customerApplication->status !== 'Approved') {
-                    $customerApplication->update([
-                        'status' => 'Approved',
-                        'decision_date' => now(),
-                        'decided_by' => $adminId,
-                        'user_id' => $user->id,
-                    ]);
-                }
-
-                // if application exists but user_id wasn't set, ensure it's linked
-                if ($customerApplication && $customerApplication->user_id !== $user->id) {
-                    $customerApplication->update(['user_id' => $user->id]);
-                }
-            } else {
-                $customerApplication = Customer::create([
-                    'first_name' => $validated['first_name'],
-                    'middle_name' => $validated['middle_name'] ?? null,
-                    'last_name' => $validated['last_name'],
-                    'suffix' => $validated['suffix'] ?? null,
-                    'designation_position' => $validated['designation_position'],
-                    'residential_address' => $validated['residential_address'],
-                    'name_of_agency_firm' => $validated['name_of_agency_firm'],
-                    'business_of_the_firm' => $validated['business_of_the_firm'],
-                    'product_line' => $validated['product_line'],
-                    'type_of_organization' => $validated['type_of_organization'],
-                    'date_established' => $validated['date_established'] ?? null,
-                    'name_of_head_of_agency_firm' => $validated['name_of_head_of_agency_firm'],
-                    'business_address' => $validated['business_address'],
-                    'contact_nos' => $validated['contact_nos'],
-                    'email_address' => $validated['email_address'],
-                    'website' => $validated['website'] ?? null,
-                    'status' => 'Approved',
-                    'decision_date' => now(),
-                    'decided_by' => $adminId,
-                    'user_id' => $user->id,
-                ]);
-            }
-
-            // 3) Create SetUpCustomer linked to the customer_application
-            $setupCustomer = SetUpCustomer::create([
-                'first_name' => $validated['first_name'],
-                'middle_name' => $validated['middle_name'] ?? null,
-                'last_name' => $validated['last_name'],
-                'suffix' => $validated['suffix'] ?? null,
-                'designation_position' => $validated['designation_position'],
-                'residential_address' => $validated['residential_address'],
-                'user_id' => $user->id,
-                'customer_application_id' => $customerApplication->id,
+        if (!$user) {
+            $randomPassword = Str::random(16);
+            $user = User::create([
+                'name' => trim("{$validated['first_name']} {$validated['middle_name']} {$validated['last_name']}"),
+                'email' => $validated['email_address'],
+                'password' => Hash::make($randomPassword),
+                'user_type' => 'cooperator',
                 'is_active' => true,
             ]);
+            $createdNewUser = true;
+        }
 
-            // 4) Create business record (use relation if available)
-            if (method_exists($setupCustomer, 'businesses')) {
-                $business = $setupCustomer->businesses()->create([
-                    'name_of_agency_firm' => $validated['name_of_agency_firm'],
-                    'business_of_the_firm' => $validated['business_of_the_firm'],
-                    'product_line' => $validated['product_line'],
-                    'type_of_organization' => $validated['type_of_organization'],
-                    'date_established' => $validated['date_established'] ?? null,
-                    'name_of_head_of_agency_firm' => $validated['name_of_head_of_agency_firm'],
-                    'business_address' => $validated['business_address'],
-                    'contact_nos' => $validated['contact_nos'],
-                    'email_address' => $validated['email_address'],
-                    'website' => $validated['website'] ?? null,
-                    'is_active' => true,
-                ]);
-            } else {
-                $business = SetUpCustomerBusiness::create([
-                    'setup_customer_id' => $setupCustomer->id,
-                    'name_of_agency_firm' => $validated['name_of_agency_firm'],
-                    'business_of_the_firm' => $validated['business_of_the_firm'],
-                    'product_line' => $validated['product_line'],
-                    'type_of_organization' => $validated['type_of_organization'],
-                    'date_established' => $validated['date_established'] ?? null,
-                    'name_of_head_of_agency_firm' => $validated['name_of_head_of_agency_firm'],
-                    'business_address' => $validated['business_address'],
-                    'contact_nos' => $validated['contact_nos'],
-                    'email_address' => $validated['email_address'],
-                    'website' => $validated['website'] ?? null,
-                    'is_active' => true,
-                ]);
-            }
+        // 2) Create SetUpCustomer (customer_application_id always null)
+        $setupCustomer = SetUpCustomer::create([
+            'first_name' => $validated['first_name'],
+            'middle_name' => $validated['middle_name'] ?? null,
+            'last_name' => $validated['last_name'],
+            'suffix' => $validated['suffix'] ?? null,
+            'designation_position' => $validated['designation_position'],
+            'residential_address' => $validated['residential_address'],
+            'user_id' => $user->id,
+            'customer_application_id' => null,
+            'is_active' => true,
+        ]);
 
-            // Prepare applicant name (neat formatting)
-            $applicantName = trim("{$validated['first_name']} {$validated['middle_name']} {$validated['last_name']} {$validated['suffix']}");
+        // 3) Create business record (use relation if available)
+        if (method_exists($setupCustomer, 'businesses')) {
+            $business = $setupCustomer->businesses()->create([
+                'name_of_agency_firm' => $validated['name_of_agency_firm'],
+                'business_of_the_firm' => $validated['business_of_the_firm'],
+                'product_line' => $validated['product_line'],
+                'type_of_organization' => $validated['type_of_organization'],
+                'date_established' => $validated['date_established'] ?? null,
+                'name_of_head_of_agency_firm' => $validated['name_of_head_of_agency_firm'],
+                'business_address' => $validated['business_address'],
+                'contact_nos' => $validated['contact_nos'],
+                'email_address' => $validated['email_address'],
+                'website' => $validated['website'] ?? null,
+                'is_active' => true,
+            ]);
+        } else {
+            $business = SetUpCustomerBusiness::create([
+                'setup_customer_id' => $setupCustomer->id,
+                'name_of_agency_firm' => $validated['name_of_agency_firm'],
+                'business_of_the_firm' => $validated['business_of_the_firm'],
+                'product_line' => $validated['product_line'],
+                'type_of_organization' => $validated['type_of_organization'],
+                'date_established' => $validated['date_established'] ?? null,
+                'name_of_head_of_agency_firm' => $validated['name_of_head_of_agency_firm'],
+                'business_address' => $validated['business_address'],
+                'contact_nos' => $validated['contact_nos'],
+                'email_address' => $validated['email_address'],
+                'website' => $validated['website'] ?? null,
+                'is_active' => true,
+            ]);
+        }
 
-            // Dispatch the event after commit so listeners find committed records
-            DB::afterCommit(function () use ($applicantName, $validated, $customerApplication, $adminId) {
-                \App\Events\CustomerApplicationApproved::dispatch(
-                    $applicantName,
-                    $validated['email_address'],
-                    $customerApplication->id,
-                    $adminId,
-                    now()->toIso8601String()
-                );
-            });
+        // Prepare applicant name (neat formatting)
+        $applicantName = trim("{$validated['first_name']} {$validated['middle_name']} {$validated['last_name']} {$validated['suffix']}");
 
-            DB::commit();
+        // Dispatch event after commit so listeners find committed records
+        DB::afterCommit(function () use ($applicantName, $validated, $adminId) {
+            // NOTE: confirm the exact constructor/arguments of CustomerApplicationApproved.
+            // If your event expects (string $name, string $email, int $applicationId, int $adminId, string $iso)
+            // you'll need to supply applicationId (or change event).
+            \App\Events\CustomerApplicationApproved::dispatch(
+                $applicantName,
+                $validated['email_address'],
+                // If event expects application ID but you removed it, pass null or adjust listener accordingly:
+                null,
+                $adminId,
+                now()->toIso8601String()
+            );
+        });
 
-            // eager load relations for response
-            $setupCustomer->load('businesses', 'user');
+        DB::commit();
 
+        // eager load relations for response
+        $setupCustomer->load('businesses', 'user');
+
+        /*
+         * Return JSON for XHR/API and redirect back with flash for browser/Inertia.
+         * Also consider X-Inertia header as a non-JSON browser request (so we treat it like a redirect).
+         */
+        // detect Inertia requests (they send X-Inertia header)
+        $isInertia = $request->header('X-Inertia') !== null;
+
+        $isJson = $request->wantsJson()
+            || $request->ajax()
+            || $request->header('X-Requested-With') === 'XMLHttpRequest';
+
+        // If it's a JSON/XHR request and NOT an Inertia request, return JSON
+        if ($isJson && ! $isInertia) {
             return response()->json([
-                'message' => 'Customer, application, user and business created/updated successfully',
+                'message' => 'Customer, user and business created/updated successfully',
                 'user' => $user,
-                'customer_application' => $customerApplication,
                 'setup_customer' => $setupCustomer,
                 'business' => $business,
                 'created_new_user' => $createdNewUser,
             ], 201);
+        }
+
+        // Otherwise (browser/Inertia) redirect back with flash so view gets props.flash.success
+        return redirect()->back()->with('success', 'Customer added successfully');
+
 
         } catch (ValidationException $ve) {
             return response()->json(['message' => 'Validation failed', 'errors' => $ve->errors()], 422);
@@ -300,7 +276,7 @@ class SetUpCustomerController extends Controller
             Log::error('Error creating setup customer', ['error' => $e->getMessage(), 'payload' => $request->all()]);
             return response()->json(['message' => 'Failed to add setup customer', 'error' => $e->getMessage()], 500);
         }
+            
     }
-
 
 }
