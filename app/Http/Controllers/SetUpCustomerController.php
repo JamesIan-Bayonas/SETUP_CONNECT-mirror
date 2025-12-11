@@ -10,6 +10,9 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\CustomerApplicationApprovedMail;
+use Illuminate\Support\Facades\Password;
 use App\Models\SetUpCustomerBusiness;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash; 
@@ -220,10 +223,8 @@ class SetUpCustomerController extends Controller
         $applicantName = trim("{$validated['first_name']} {$validated['middle_name']} {$validated['last_name']} {$validated['suffix']}");
 
         // Dispatch event after commit so listeners find committed records
-        DB::afterCommit(function () use ($applicantName, $validated, $adminId) {
-            // NOTE: confirm the exact constructor/arguments of CustomerApplicationApproved.
-            // If your event expects (string $name, string $email, int $applicationId, int $adminId, string $iso)
-            // you'll need to supply applicationId (or change event).
+        DB::afterCommit(function () use ($applicantName, $validated, $adminId, $user) {
+            // KEEP original event dispatch exactly as-is (other code depends on it)
             \App\Events\CustomerApplicationApproved::dispatch(
                 $applicantName,
                 $validated['email_address'],
@@ -232,6 +233,29 @@ class SetUpCustomerController extends Controller
                 $adminId,
                 now()->toIso8601String()
             );
+
+            // Generate reset password link
+            try {
+                $token = Password::broker()->createToken($user);
+                $resetPasswordUrl = url(route('password.reset', [
+                    'token' => $token,
+                    'email' => $user->email,
+                ], false));
+            } catch (\Throwable $ex) {
+                $resetPasswordUrl = '#';
+                Log::warning('Failed creating reset token', ['error' => $ex->getMessage()]);
+            }
+
+            // Send the email using your Blade
+            try {
+                Mail::to($validated['email_address'])
+                    ->send(new CustomerApplicationApprovedMail($applicantName, $resetPasswordUrl));
+            } catch (\Throwable $ex) {
+                Log::error('Failed sending CustomerApplicationApprovedMail', [
+                    'error' => $ex->getMessage(),
+                    'email' => $validated['email_address'],
+                ]);
+            }
         });
 
         DB::commit();
