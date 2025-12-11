@@ -269,7 +269,7 @@ class SetUpCustomerController extends Controller
         // If it's a JSON/XHR request and NOT an Inertia request, return JSON
         if ($isJson && ! $isInertia) {
             return response()->json([
-                'message' => 'Customer, user and business created/updated successfully',
+                'message' => 'Customer, user and business created successfully',
                 'user' => $user,
                 'setup_customer' => $setupCustomer,
                 'business' => $business,
