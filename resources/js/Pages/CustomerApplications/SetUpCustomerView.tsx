@@ -468,22 +468,57 @@ export default function SetUpCustomerView({ customers }: Props) {
 
       <AddCustomerModal isOpen={showModal} onClose={() => setShowModal(false)} />
 
-      {/* Success modal (custom, no external lib) */}
+      {/* Success modal (custom, improved UI only) */}
       {showSuccess && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm text-center">
-            <h2 className="text-xl font-bold text-green-600 mb-2">Success</h2>
-            <p className="text-gray-700 mb-4">{successMessage ?? flash?.success}</p>
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50 p-4">
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="w-full max-w-md bg-white rounded-2xl shadow-2xl ring-1 ring-black ring-opacity-5 overflow-hidden transform transition-all duration-300 scale-100"
+          >
+            {/* Header with gradient and icon */}
+            <div className="flex items-center gap-4 px-6 py-6 bg-gradient-to-r from-green-50 to-green-100">
+              <div className="flex-shrink-0">
+                <div className="h-12 w-12 rounded-full bg-white/80 flex items-center justify-center shadow-sm">
+                  <svg className="h-7 w-7 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Success</h3>
+                <p className="text-sm text-gray-600">{successMessage ?? flash?.success}</p>
+              </div>
+              <button
+                onClick={() => {
+                  setShowSuccess(false);
+                }}
+                aria-label="Close"
+                className="ml-auto -mr-2 p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+              >
+                <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M6.28 5.22a.75.75 0 011.06 0L10 7.94l2.66-2.72a.75.75 0 111.06 1.06L11.06 9l2.72 2.66a.75.75 0 11-1.06 1.06L10 10.06l-2.66 2.72a.75.75 0 11-1.06-1.06L8.94 9 6.22 6.34a.75.75 0 010-1.06z" clipRule="evenodd" />
+                </svg>
+              </button>
+            </div>
 
-            <button
-              onClick={() => {
-                setShowSuccess(false);
-                router.reload();
-              }}
-              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-            >
-              OK
-            </button>
+            {/* Body */}
+            <div className="px-6 py-6">
+              <p className="text-sm text-gray-700">Your changes were saved successfully. You can continue managing customers.</p>
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 bg-gray-50 flex items-center justify-end">
+              <button
+                onClick={() => {
+                  setShowSuccess(false);
+                  router.reload();
+                }}
+                className="px-5 py-2 bg-green-600 text-white rounded-md text-sm font-semibold hover:bg-green-700 shadow"
+              >
+                OK
+              </button>
+            </div>
           </div>
         </div>
       )}

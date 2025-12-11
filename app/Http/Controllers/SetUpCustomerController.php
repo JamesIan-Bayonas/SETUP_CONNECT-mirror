@@ -269,7 +269,7 @@ class SetUpCustomerController extends Controller
         // If it's a JSON/XHR request and NOT an Inertia request, return JSON
         if ($isJson && ! $isInertia) {
             return response()->json([
-                'message' => 'Customer, user and business created/updated successfully',
+                'message' => 'SetUp Customer created successfully.',
                 'user' => $user,
                 'setup_customer' => $setupCustomer,
                 'business' => $business,
@@ -278,7 +278,7 @@ class SetUpCustomerController extends Controller
         }
 
         // Otherwise (browser/Inertia) redirect back with flash so view gets props.flash.success
-        return redirect()->back()->with('success', 'Customer added successfully');
+        return redirect()->back()->with('success', 'SetUp Customer created successfully.');
 
 
         } catch (ValidationException $ve) {
