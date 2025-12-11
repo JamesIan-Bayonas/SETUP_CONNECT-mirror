@@ -42,7 +42,7 @@
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f9f9f9; border-left: 4px solid #667eea;">
                                 <tr>
                                     <td style="padding: 20px;">
-                                        <h3 style="margin: 0 0 20px 0; color: #667eea; font-size: 18px;">📋 Next Steps:</h3>
+                                        <h3 style="margin: 0 0 20px 0; color: #667eea; font-size: 18px;">📋 Next Step:</h3>
 
                                         <!-- Set Up Account (REMOVED MOI step, so now this becomes Step 1) -->
                                         <p style="margin: 0 0 5px 0; line-height: 1.6;">

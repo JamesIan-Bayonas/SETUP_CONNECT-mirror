@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\CustomerApplicationApprovedMail;
 use Illuminate\Support\Facades\Password;
 use App\Models\SetUpCustomerBusiness;
+use App\Events\CustomerApplicationApproved;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash; 
 
@@ -222,17 +223,8 @@ class SetUpCustomerController extends Controller
         // Prepare applicant name (neat formatting)
         $applicantName = trim("{$validated['first_name']} {$validated['middle_name']} {$validated['last_name']} {$validated['suffix']}");
 
-        // Dispatch event after commit so listeners find committed records
-        DB::afterCommit(function () use ($applicantName, $validated, $adminId, $user) {
-            // KEEP original event dispatch exactly as-is (other code depends on it)
-            \App\Events\CustomerApplicationApproved::dispatch(
-                $applicantName,
-                $validated['email_address'],
-                // If event expects application ID but you removed it, pass null or adjust listener accordingly:
-                null,
-                $adminId,
-                now()->toIso8601String()
-            );
+        // Dispatch email after commit — ONLY send the new email
+        DB::afterCommit(function () use ($applicantName, $validated, $adminId, $user) {      
 
             // Generate reset password link
             try {
@@ -246,7 +238,7 @@ class SetUpCustomerController extends Controller
                 Log::warning('Failed creating reset token', ['error' => $ex->getMessage()]);
             }
 
-            // Send the email using your Blade
+            // Send ONLY the new cleaned email
             try {
                 Mail::to($validated['email_address'])
                     ->send(new CustomerApplicationApprovedMail($applicantName, $resetPasswordUrl));
