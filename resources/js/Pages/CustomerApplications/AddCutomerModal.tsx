@@ -31,14 +31,29 @@ const AddCustomerModal: React.FC<AddCustomerModalProps> = ({ isOpen, onClose }) 
 
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
-  // Inline error shown inside the modal for validation / server errors
   const [inlineError, setInlineError] = useState<string | null>(null);
+
+  const requiredFields: (keyof FormData)[] = [
+    "firstName",
+    "lastName",
+    "designationPosition",
+    "residentialAddress",
+    "agencyFirm",
+    "businessOfFirm",
+    "productLine",
+    "orgType",
+    "dateEstablished",
+    "nameOfHeadOfAgency",
+    "businessAddress",
+    "contactNumbers",
+    "emailAddress",
+  ];
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    if (inlineError) setInlineError(null); // clear inline error when user types
+    if (inlineError) setInlineError(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -46,26 +61,19 @@ const AddCustomerModal: React.FC<AddCustomerModalProps> = ({ isOpen, onClose }) 
     setSubmitted(true);
     setInlineError(null);
 
-    const requiredFields = [
-      "firstName",
-      "lastName",
-      "designationPosition",
-      "residentialAddress",
-      "agencyFirm",
-      "businessOfFirm",
-      "productLine",
-      "orgType",
-      "dateEstablished",
-      "nameOfHeadOfAgency",
-      "businessAddress",
-      "contactNumbers",
-      "emailAddress",
-    ];
-
-    const missing = requiredFields.filter((f) => !formData[f as keyof FormData]);
-    if (missing.length > 0) {
-      const missingNames = missing.join(", ");
-      setInlineError(`Please fill required fields: ${missingNames}`);
+    // FRONTEND REQUIRED CHECK
+    const missingFields = requiredFields.filter((f) => !formData[f]);
+    if (missingFields.length > 0) {
+      // dispatch missing popup event to parent view (so it shows the designed popup)
+      window.dispatchEvent(
+        new CustomEvent("setupcustomer:missing", {
+          detail: {
+            message: "Please fill all required fields before submitting.",
+            missingFields,
+          },
+        })
+      );
+      // keep modal open and do not submit
       return;
     }
 
@@ -93,7 +101,6 @@ const AddCustomerModal: React.FC<AddCustomerModalProps> = ({ isOpen, onClose }) 
     try {
       const res = await axios.post("/setupcustomer", payload);
 
-      // success - dispatch event your view listens to
       const successMsg = res?.data?.message ?? "Customer added successfully";
       window.dispatchEvent(
         new CustomEvent("setupcustomer:created", { detail: { message: successMsg } })
@@ -122,40 +129,53 @@ const AddCustomerModal: React.FC<AddCustomerModalProps> = ({ isOpen, onClose }) 
       setSubmitted(false);
       setInlineError(null);
     } catch (err: any) {
-      // Prefer structured server responses
       const resp = err?.response;
 
-      // Laravel validation errors come as 422 with errors object
+      // Laravel validation errors -> 422
       if (resp && resp.status === 422 && resp.data && resp.data.errors) {
         const errors = resp.data.errors as Record<string, string[]>;
-        // If email has errors (including unique rule), trigger duplicate UI in parent view
+
+        // If there are non-email validation errors, show them inline
+        const nonEmailErrors = Object.entries(errors)
+          .filter(([field]) => field !== "email_address")
+          .flatMap(([, msgs]) => msgs);
+
+        if (nonEmailErrors.length > 0) {
+          setInlineError(nonEmailErrors.join("\n"));
+          return;
+        }
+
+        // If only email has errors (e.g. unique), dispatch duplicate user popup
         if (errors.email_address && errors.email_address.length > 0) {
           const message = errors.email_address.join(" ");
           window.dispatchEvent(
             new CustomEvent("setupcustomer:duplicate", { detail: { message } })
           );
-          setInlineError(message);
-        } else {
-          // show all validation messages inline
-          const allMessages = Object.values(errors).flat().join("\n");
-          setInlineError(allMessages || "Validation failed. Please check your input.");
+          // also keep a short inline hint
+          setInlineError("This email is already in use.");
+          return;
         }
-      } else if (resp && resp.status === 409) {
-        // If you ever return 409 for duplicates
+
+        setInlineError("Validation failed. Please check your input.");
+        return;
+      }
+
+      // Optional: 409 conflict handling
+      if (resp && resp.status === 409) {
         const message = resp.data?.message ?? "Email already exists.";
         window.dispatchEvent(
           new CustomEvent("setupcustomer:duplicate", { detail: { message } })
         );
-        setInlineError(message);
-      } else {
-        // Generic fallback message
-        const message =
-          resp?.data?.message ||
-          resp?.data?.error ||
-          err?.message ||
-          "Failed to add customer. Please try again.";
-        setInlineError(message);
+        setInlineError("This email is already in use.");
+        return;
       }
+
+      const fallback =
+        resp?.data?.message ||
+        resp?.data?.error ||
+        err?.message ||
+        "Failed to add customer. Please try again.";
+      setInlineError(fallback);
     } finally {
       setLoading(false);
     }
