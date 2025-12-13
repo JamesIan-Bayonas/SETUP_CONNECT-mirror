@@ -83,7 +83,7 @@ class CreateSetUpCustomerListener
             'name_of_agency_firm' => $application->name_of_agency_firm,
             'business_of_the_firm' => $application->business_of_the_firm,
             'product_line' => $application->product_line,
-            'type_of_organization' => $application->type_of_organization,
+            'business_organization_type_id' => $application->business_organization_type_id,
             'date_established' => $application->date_established,
             'name_of_head_of_agency_firm' => $application->name_of_head_of_agency_firm,
             'business_address' => $application->business_address,

@@ -39,9 +39,43 @@ class CustomerApprovalController extends Controller
 
     public function show($id)
     {
-        $application = \App\Models\Customer::findOrFail($id);
+        $application = \App\Models\Customer::with('businessOrgType')
+            ->findOrFail($id);
         
-        return response()->json($application);
+        return response()->json([
+            'id' => $application->id,
+            'first_name' => $application->first_name,
+            'middle_name' => $application->middle_name,
+            'last_name' => $application->last_name,
+            'suffix' => $application->suffix,
+            'designation_position' => $application->designation_position,
+            'residential_address' => $application->residential_address,
+            'name_of_agency_firm' => $application->name_of_agency_firm,
+            'business_of_the_firm' => $application->business_of_the_firm,
+            'product_line' => $application->product_line,
+            'type_of_organization' => $application->businessOrgType?->name,
+            'date_established' => $application->date_established?->format('Y-m-d'),
+            'name_of_head_of_agency_firm' => $application->name_of_head_of_agency_firm,
+            'business_address' => $application->business_address,
+            'contact_nos' => $application->contact_nos,
+            'email_address' => $application->email_address,
+            'website' => $application->website,
+            'status' => $application->status,
+            'decision_date' => $application->decision_date,
+            'decided_by' => $application->decided_by,
+            'user_id'  => $application->user_id,
+            'accomplished_by' => $application->accomplished_by,
+            'accomplished_date' => $application->accomplished_date,
+            'remarks_action_taken' => $application->remarks_action_taken,
+            'handled_by' => $application->handled_by,
+            'handled_date' => $application->handled_date,
+            'remarks_by_cpstd' => $application->remarks_by_cpstd,
+            'noted_by' => $application->noted_by,
+            'noted_date' => $application->noted_date,
+
+            'created_at' => $application->created_at->format('Y-m-d'),
+            'updated_at' => $application->updated_at->format('Y-m-d'),
+        ]);
     }
 
     public function approve($id)

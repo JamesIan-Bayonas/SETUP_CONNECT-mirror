@@ -1,5 +1,12 @@
-import React from "react";
-import { FormData, orgTypeOptions } from "@/types/applicationform";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { FormData } from "@/types/applicationform";
+
+interface OrgType {
+    id: number,
+    name: string,
+    is_active: boolean
+}
 
 interface BusinessInfoProps {
     formData: FormData;
@@ -18,12 +25,32 @@ const BusinessInfo: React.FC<BusinessInfoProps> = ({
     submitted,
     inputClass,
 }) => {
+    const [orgTypeOptions, setOrgTypeOptions] = useState<OrgType[]>([]);
+    const [loadingOrgTypes, setLoadingOrgTypes] = useState(true);
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const websiteRegex =
         /^(https?:\/\/)?([\w-]+\.)+[\w-]{2,}(\/[\w\-._~:/?#[\]@!$&'()*+,;=]*)?$/i;
 
     const isValidEmail = formData.emailAddress.trim() === "" || emailRegex.test(formData.emailAddress);
     const isValidWebsite = formData.website.trim() === "" || websiteRegex.test(formData.website);
+
+    useEffect(() => {
+        const loadOrgTypes = async () => {
+            try {
+                const response = await axios.get<OrgType[]>(
+                    "http://127.0.0.1:8000/api/org-types"
+                );
+                setOrgTypeOptions(response.data);
+            } catch (err) {
+                console.error("Failed to fetch business organization types", err);
+            } finally {
+                setLoadingOrgTypes(false);
+            }
+        };
+
+        loadOrgTypes();
+    }, []);
 
     return (
         <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-8 border border-green-200 shadow-sm">
@@ -105,19 +132,25 @@ const BusinessInfo: React.FC<BusinessInfoProps> = ({
                         Type of Organization{" "}
                         <span className="text-red-500">*</span>
                     </label>
-                    <select
-                        name="orgType"
-                        value={formData.orgType}
-                        onChange={handleChange}
-                        className={inputClass("orgType")}
-                    >
-                        <option value="">Select organization type</option>
-                        {orgTypeOptions.map((option) => (
-                            <option key={option} value={option}>
-                                {option}
-                            </option>
-                        ))}
-                    </select>
+                    {loadingOrgTypes ? (
+                        <select className={inputClass("orgType")}>
+                            <option value="">Loading...</option>
+                        </select>
+                    ) : (
+                        <select
+                            name="orgType"
+                            value={formData.orgType}
+                            onChange={handleChange}
+                            className={inputClass("orgType")}
+                        >
+                            <option value="">Select organization type</option>
+                            {orgTypeOptions.map((opt) => (
+                                <option key={opt.id} value={opt.id.toString()}>
+                                {opt.name}
+                                </option>
+                            ))}
+                        </select>
+                    )}
                     {submitted && !formData.orgType && (
                         <p className="text-red-500 text-sm mt-1">
                             This field is required

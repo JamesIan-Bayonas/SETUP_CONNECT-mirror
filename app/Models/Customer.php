@@ -31,7 +31,7 @@ class Customer extends Model
         'name_of_agency_firm',
         'business_of_the_firm',
         'product_line',
-        'type_of_organization',
+        'business_organization_type_id',
         'date_established',
         'name_of_head_of_agency_firm',
         'business_address',
@@ -82,5 +82,16 @@ class Customer extends Model
     public function decidedByUser()
     {
         return $this->belongsTo(User::class, 'decided_by');
+    }
+
+    /*
+        Get the type of organization of the specified business.
+    */
+    public function businessOrgType()
+    {
+        return $this->belongsTo(
+            BusinessOrganizationType::class, 
+            'business_organization_type_id'
+        );
     }
 }

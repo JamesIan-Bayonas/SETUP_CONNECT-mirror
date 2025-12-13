@@ -77,7 +77,7 @@ const ApplicationForm: React.FC = () => {
                 name_of_agency_firm: formData.agencyFirm,
                 business_of_the_firm: formData.businessOfFirm,
                 product_line: formData.productLine,
-                type_of_organization: formData.orgType,
+                business_organization_type_id: formData.orgType,
                 date_established: formData.dateEstablished,
                 name_of_head_of_agency_firm: formData.nameOfHeadOfAgency,
                 business_address: formData.businessAddress,

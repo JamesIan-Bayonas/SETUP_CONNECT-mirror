@@ -6,6 +6,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerApprovalController;
 use App\Http\Controllers\SetUpCustomerController;
+use App\Http\Controllers\Web\BusinessOrganizationTypeController;
 use App\Events\CustomerApplicationApproved;
 use Illuminate\Support\Facades\Route;
 
@@ -71,6 +72,11 @@ Route::middleware('auth')->group(function () {
     Route::middleware('can:manage-users')->group(function () {
         Route::resource('users', UserController::class);
     });
+
+    // Business Organization Type Management (only for admin)
+    Route::middleware('can:manage-org-types')->group(function () {
+        Route::resource('org-types', BusinessOrganizationTypeController::class);
+    });
 });
 
 // Public application form (no auth required)
@@ -102,9 +108,6 @@ Route::middleware('auth')->group(function () {
     Route::post('/setupcustomer', [SetUpCustomerController::class, 'store'])
         ->name('customer.add');
 });
-
-
-
 
 // Local dev route to test approval email dispatch
 if (app()->environment('local')) {

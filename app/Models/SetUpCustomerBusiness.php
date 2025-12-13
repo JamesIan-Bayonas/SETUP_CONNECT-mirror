@@ -16,7 +16,7 @@ class SetUpCustomerBusiness extends Model
         'name_of_agency_firm',
         'business_of_the_firm',
         'product_line',
-        'type_of_organization',
+        'business_organization_type_id',
         'date_established',
         'name_of_head_of_agency_firm',
         'business_address',
@@ -37,5 +37,16 @@ class SetUpCustomerBusiness extends Model
     public function setupCustomer()
     {
         return $this->belongsTo(SetUpCustomer::class, 'setup_customer_id');
+    }
+
+    /*
+        Get the type of organization of this business.
+    */
+    public function orgType()
+    {
+        return $this->belongsTo(
+            BusinessOrganizationType::class, 
+            'business_organization_type_id'
+        );
     }
 }

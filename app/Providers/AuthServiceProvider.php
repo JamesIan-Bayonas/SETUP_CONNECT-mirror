@@ -25,5 +25,9 @@ class AuthServiceProvider extends ServiceProvider
         Gate::define('manage-users', function ($user) {
             return $user->user_type === UserType::ADMIN || $user->user_type === UserType::PSTO_STAFF;
         });
+
+        Gate::define('manage-org-types', function ($user) {
+            return $user->user_type === UserType::ADMIN;
+        });
     }
 }

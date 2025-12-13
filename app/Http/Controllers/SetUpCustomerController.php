@@ -49,7 +49,7 @@ class SetUpCustomerController extends Controller
      */
     public function show($id)
     {
-        $customer = SetUpCustomer::with(['user', 'businesses', 'customerApplication'])
+        $customer = SetUpCustomer::with(['user', 'businesses.orgType', 'customerApplication'])
             ->findOrFail($id);
 
         return response()->json([
@@ -74,7 +74,7 @@ class SetUpCustomerController extends Controller
                     'name_of_agency_firm' => $business->name_of_agency_firm,
                     'business_of_the_firm' => $business->business_of_the_firm,
                     'product_line' => $business->product_line,
-                    'type_of_organization' => $business->type_of_organization,
+                    'type_of_organization' => $business->orgType?->name,
                     'date_established' => $business->date_established->format('Y-m-d'),
                     'name_of_head_of_agency_firm' => $business->name_of_head_of_agency_firm,
                     'business_address' => $business->business_address,

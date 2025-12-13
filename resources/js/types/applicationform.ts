@@ -45,16 +45,3 @@ export const designationOptions = [
     "Nurse Supervisor",
     "Laboratory Manager",
 ];
-
-export const orgTypeOptions = [
-    "Sole Proprietorship",
-    "Partnership",
-    "Corporation",
-    "Cooperative",
-    "Franchise",
-    "Limited Liability Company (LLC)",
-    "Joint Venture",
-    "Holding Company",
-    "Branch Office",
-    "Subsidiary",
-];
