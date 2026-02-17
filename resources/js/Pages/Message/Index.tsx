@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState,useEffect } from "react";
 
 interface Message {
   id: number;
@@ -8,29 +8,38 @@ interface Message {
   isRead: boolean;
 }
 
+
+
 const FAKE_MESSAGES: Message[] = [
-  { 
-    id: 1, 
-    recipient: "Sarah Johnson", 
-    subject: "Permit Application Inquiry – Follow-up on submitted documents",
-    date: "2024-01-15 10:30 AM", 
-    isRead: true 
-  },
-  { 
-    id: 2, 
-    recipient: "Michael Brown", 
-    subject: "Missing Requirements – Attached updated files",
-    date: "2024-01-15 09:45 AM", 
-    isRead: false 
-  },
-  { 
-    id: 3, 
-    recipient: "Jennifer Lee", 
-    subject: "System Maintenance Notice – Scheduled downtime",
-    date: "2024-01-15 08:20 AM", 
-    isRead: true 
-  },
+  { id: 1, recipient: "Sarah Johnson", subject: "Permit Application Inquiry – Follow-up on submitted documents", date: "2024-01-15 10:30 AM", isRead: true },
+  { id: 2, recipient: "Michael Brown", subject: "Missing Requirements – Attached updated files", date: "2024-01-15 09:45 AM", isRead: false },
+  { id: 3, recipient: "Jennifer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
+  { id: 4, recipient: "Jenni", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
+  { id: 5, recipient: "nifer Le", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
+  { id: 6, recipient: "ifer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
+  { id: 7, recipient: "Jennr Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
+  { id: 8, recipient: "Jennifer e", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
+  { id: 9, recipient: "Jeer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
+  { id: 10, recipient: "Jeer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
+  { id: 11, recipient: "Jeer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
+  { id: 12, recipient: "Jeer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
+  { id: 13, recipient: "Jeer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
+  { id: 14, recipient: "Jeer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
+  { id: 15, recipient: "Jeer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
+  { id: 16, recipient: "Jeer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
+  { id: 17, recipient: "Jeer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
+  { id: 18, recipient: "Jeer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
+  { id: 19, recipient: "Jeer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
+  { id: 20, recipient: "Jeer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
+  { id: 21, recipient: "Jeer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
+  { id: 22, recipient: "Jeer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
+  { id: 23, recipient: "Jeer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
+  { id: 24, recipient: "Jeer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
+  { id: 25, recipient: "Jeer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
+  { id: 26, recipient: "Jeer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
+  { id: 27, recipient: "Jeer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: false },
 ];
+
 
 export default function SetupMessageUI() {
   const [messages] = useState<Message[]>(FAKE_MESSAGES);
@@ -73,6 +82,22 @@ export default function SetupMessageUI() {
     );
   };
 
+  useEffect(() => {
+  setCurrentPage(1);
+}, [filter, searchTerm]);
+
+  // Pagination settings
+  const itemsPerPage = 10;
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const totalPages = Math.ceil(filteredMessages.length / itemsPerPage);
+
+  const paginatedMessages = filteredMessages.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+
   return (
     <div className="bg-white shadow-sm rounded-xl border border-gray-200 overflow-hidden">
       {/* Header */}
@@ -90,15 +115,31 @@ export default function SetupMessageUI() {
         <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-5">
           {/* Search */}
           <div className="relative flex-1 min-w-0">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+              <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-5 h-5 text-gray-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M21 21l-4.35-4.35m1.6-5.4a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+            </span>
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search recipient, subject..."
-              className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg 
-                         focus:outline-none focus:ring-2 focus:ring-indigo-400/40 
-                         focus:border-indigo-400 bg-gray-50/70 transition"
-            />
+              className="w-[60%] pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg 
+                        focus:outline-none focus:ring-2 focus:ring-indigo-400/40 
+                        focus:border-indigo-400 bg-gray-50/70 transition"
+                          />
             {searchTerm && (
               <button
                 onClick={clearSearch}
@@ -149,7 +190,7 @@ export default function SetupMessageUI() {
                   </td>
                 </tr>
               ) : (
-                filteredMessages.map((msg) => (
+                paginatedMessages.map((msg) => (
                   <tr
                     key={msg.id}
                     className={`hover:bg-indigo-50/40 transition-colors
@@ -190,6 +231,84 @@ export default function SetupMessageUI() {
               )}
             </tbody>
           </table>
+        </div>
+        
+        {/* Pagination */}
+        <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 mt-4">
+          {/* Mobile view */}
+          <div className="flex flex-1 justify-between sm:hidden">
+            <button
+              onClick={() => currentPage > 1 && setCurrentPage(currentPage - 1)}
+              disabled={currentPage === 1}
+              className={`relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium ${
+                currentPage === 1
+                  ? "text-gray-300 cursor-not-allowed"
+                  : "text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              « Previous
+            </button>
+
+            <button
+              onClick={() => currentPage < totalPages && setCurrentPage(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className={`relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium ${
+                currentPage === totalPages
+                  ? "text-gray-300 cursor-not-allowed"
+                  : "text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              Next »
+            </button>
+          </div>
+
+          {/* Desktop view */}
+          <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+            <p className="text-sm text-gray-700">
+              Showing <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span>
+              {" "}to{" "}
+              <span className="font-medium">
+                {Math.min(currentPage * itemsPerPage, filteredMessages.length)}
+              </span>
+              {" "}of{" "}
+              <span className="font-medium">{filteredMessages.length}</span> results
+            </p>
+
+            <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm">
+              {/* Previous button */}
+              <button
+                onClick={() => currentPage > 1 && setCurrentPage(currentPage - 1)}
+                disabled={currentPage === 1}
+                className={`relative inline-flex items-center px-4 py-2 text-sm font-medium border rounded-l-md ${
+                  currentPage === 1
+                    ? "text-gray-300 cursor-not-allowed bg-white border-gray-300"
+                    : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
+                }`}
+              >
+                « Previous
+              </button>
+
+              {/* Single current page number */}
+              <span
+                className="relative inline-flex items-center px-4 py-2 text-sm font-medium border z-10 bg-indigo-50 border-indigo-500 text-indigo-600"
+              >
+                {currentPage}
+              </span>
+
+              {/* Next button */}
+              <button
+                onClick={() => currentPage < totalPages && setCurrentPage(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className={`relative inline-flex items-center px-4 py-2 text-sm font-medium border rounded-r-md ${
+                  currentPage === totalPages
+                    ? "text-gray-300 cursor-not-allowed bg-white border-gray-300"
+                    : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
+                }`}
+              >
+                Next »
+              </button>
+            </nav>
+          </div>
         </div>
       </div>
     </div>
