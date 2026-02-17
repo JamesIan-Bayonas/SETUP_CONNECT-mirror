@@ -1,7 +1,7 @@
 import { PropsWithChildren, ReactNode, useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import { User } from '@/types';
-
+import Index from '@/Pages/Message';
 interface AuthenticatedLayoutProps {
   header?: ReactNode;
 }
@@ -12,6 +12,7 @@ export default function AuthenticatedLayout({ header, children }: PropsWithChild
   const [managementOpen, setManagementOpen] = useState(true);
   const [setupOpen, setSetupOpen] = useState(true);
   const [messageOpen, setMessageOpen] = useState(false);
+  const [showMessages, setShowMessages] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const currentPath = usePage().url;
 
@@ -343,26 +344,31 @@ export default function AuthenticatedLayout({ header, children }: PropsWithChild
                
 
                   {/* message Clients */}
-                  <Link
-                    href="/MessageList"
-                    className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                      isActive('/MessageList')
-                        ? 'bg-indigo-50 text-indigo-600'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  <button
+                  type="button" onClick={(e) => {e.preventDefault(); // Stops the browser from trying to load a link
+                  setShowMessages(true);   // Turns ON the message screen
+                    }}
+                  className={`w-full group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                 showMessages // If switch is ON, make this button look active (blue)
+                              ? 'bg-indigo-50 text-indigo-600'
+                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                     }`}
-                  >
-                    <svg
-                      className={`flex-shrink-0 h-5 w-5 ${
-                        isActive('/MessageList') ? 'text-indigo-600' : 'text-gray-400 group-hover:text-gray-500'
-                      }`}
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                    </svg>
-                    {sidebarOpen && <span className="ml-3">Inbox Message</span>}
-                  </Link>
+>
+  {/* Your Icon */}
+    <svg
+    className={`flex-shrink-0 h-5 w-5 ${
+      showMessages ? 'text-indigo-600' : 'text-gray-400 group-hover:text-gray-500'
+    }`}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+  >
+     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+  </svg>
+  
+  {/* The Text */}
+  {sidebarOpen && <span className="ml-3">Inbox Message</span>}
+</button>
                 </div>
               )}
             </div>
@@ -553,7 +559,15 @@ export default function AuthenticatedLayout({ header, children }: PropsWithChild
           </header>
         )}
 
-        <main className="min-h-[calc(100vh-4rem)]">{children}</main>
+        <main>
+    {showMessages ? (
+        // If the switch is ON, show the Message List
+        <Index/>
+    ) : (
+        // If the switch is OFF, show the normal page (like index.tsx)
+        children
+    )}
+</main>
       </div>
     </div>
   );
