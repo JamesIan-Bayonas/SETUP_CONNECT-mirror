@@ -2,7 +2,6 @@ import { useState } from "react";
 
 interface Message {
   id: number;
-  sender: string;
   recipient: string;
   subject: string;
   date: string;
@@ -12,7 +11,6 @@ interface Message {
 const FAKE_MESSAGES: Message[] = [
   { 
     id: 1, 
-    sender: "John Smith", 
     recipient: "Sarah Johnson", 
     subject: "Permit Application Inquiry – Follow-up on submitted documents",
     date: "2024-01-15 10:30 AM", 
@@ -20,7 +18,6 @@ const FAKE_MESSAGES: Message[] = [
   },
   { 
     id: 2, 
-    sender: "Emily Davis", 
     recipient: "Michael Brown", 
     subject: "Missing Requirements – Attached updated files",
     date: "2024-01-15 09:45 AM", 
@@ -28,7 +25,6 @@ const FAKE_MESSAGES: Message[] = [
   },
   { 
     id: 3, 
-    sender: "Robert Wilson", 
     recipient: "Jennifer Lee", 
     subject: "System Maintenance Notice – Scheduled downtime",
     date: "2024-01-15 08:20 AM", 
@@ -37,15 +33,17 @@ const FAKE_MESSAGES: Message[] = [
 ];
 
 export default function SetupMessageUI() {
-  const [messages] = useState(FAKE_MESSAGES);
+  const [messages] = useState<Message[]>(FAKE_MESSAGES);
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState<"all" | "read" | "unread">("all");
 
+  const trimmedSearch = searchTerm.trim().toLowerCase();
+
   const filteredMessages = messages.filter((msg) => {
     const matchesSearch =
-      msg.sender.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      msg.recipient.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      msg.subject.toLowerCase().includes(searchTerm.toLowerCase());
+      !trimmedSearch ||
+      msg.recipient.toLowerCase().includes(trimmedSearch) ||
+      msg.subject.toLowerCase().includes(trimmedSearch);
 
     const matchesFilter =
       filter === "all" ||
@@ -55,115 +53,143 @@ export default function SetupMessageUI() {
     return matchesSearch && matchesFilter;
   });
 
+  const clearSearch = () => setSearchTerm("");
+
+  // Highlight helper
+  const highlightText = (text: string) => {
+    if (!trimmedSearch) return text;
+
+    const regex = new RegExp(`(${trimmedSearch})`, "gi");
+    const parts = text.split(regex);
+
+    return parts.map((part, i) =>
+      part.toLowerCase() === trimmedSearch ? (
+        <mark key={i} className="bg-yellow-200 text-black rounded px-0.5">
+          {part}
+        </mark>
+      ) : (
+        part
+      )
+    );
+  };
+
   return (
-    <div className="bg-white shadow-sm rounded-lg p-6">
+    <div className="bg-white shadow-sm rounded-xl border border-gray-200 overflow-hidden">
       {/* Header */}
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold text-gray-800">Setup Message Management</h2>
-        <button className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">
-          Add Setup Message
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-5 border-b">
+        <h2 className="text-xl font-semibold text-gray-800">
+          Setup Message
+        </h2>
+        <button className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg shadow-sm transition">
+          + New Message
         </button>
       </div>
 
-      {/* Search Label */}
-      <label className="block text-sm font-medium text-gray-700 mb-1">
-        Search
-      </label>
+      <div className="p-5">
+        {/* Controls row */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-5">
+          {/* Search */}
+          <div className="relative flex-1 min-w-0">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search recipient, subject..."
+              className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg 
+                         focus:outline-none focus:ring-2 focus:ring-indigo-400/40 
+                         focus:border-indigo-400 bg-gray-50/70 transition"
+            />
+            {searchTerm && (
+              <button
+                onClick={clearSearch}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700"
+                title="Clear search"
+              >
+                ✕
+              </button>
+            )}
+          </div>
 
-      {/* Search Input with Icon */}
-      <div className="relative mb-4">
-        <input
-          type="text"
-          placeholder="Search by sender, subject, or recipient..."
-          className="border rounded w-64 px-3 py-2 pl-10 focus:outline-none"
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-
-        {/* Search Icon */}
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-5 w-5 text-gray-400 absolute left-3 top-2.5 pointer-events-none"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1110.5 3a7.5 7.5 0 016.15 13.65z"
-          />
-        </svg>
-      </div>
-
-      {/* Table */}
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Sender</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Subject</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date Sent</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Recipient</th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Status</th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Actions</th>
-            </tr>
-          </thead>
-
-          <tbody className="bg-white divide-y divide-gray-200">
-            {filteredMessages.map((msg) => (
-              <tr key={msg.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 font-medium text-gray-900">{msg.sender}</td>
-
-                {/* SUBJECT COLUMN */}
-                <td className="px-6 py-4 text-sm text-gray-900">
-                  {msg.subject}
-                </td>
-
-                <td className="px-6 py-4 text-sm text-gray-500">{msg.date}</td>
-                <td className="px-6 py-4 text-sm text-gray-900">{msg.recipient}</td>
-
-                {/* Status */}
-                <td className="px-6 py-4 text-center">
-                  <span
-                    className={`px-2 inline-flex text-xs font-semibold rounded-full ${
-                      msg.isRead
-                        ? "bg-green-100 text-green-800"
-                        : "bg-yellow-100 text-yellow-800"
-                    }`}
-                  >
-                    {msg.isRead ? "Read" : "Unread"}
-                  </span>
-                </td>
-
-                {/* Actions */}
-                <td className="px-6 py-4 text-center space-x-3">
-                  <a href={`/messages/${msg.id}`} className="text-indigo-600 hover:underline">
-                    View
-                  </a>
-                  <a href={`/messages/${msg.id}/edit`} className="text-indigo-600 hover:underline">
-                    Edit
-                  </a>
-                  <a href={`/messages/${msg.id}/delete`} className="text-red-600 hover:underline">
-                    Delete
-                  </a>
-                </td>
-              </tr>
+          {/* Filter buttons */}
+          <div className="flex gap-2 flex-shrink-0">
+            {(["all", "unread", "read"] as const).map((f) => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={`px-4 py-2 text-sm font-medium rounded-lg transition
+                  ${filter === f 
+                    ? "bg-indigo-100 text-indigo-700 border border-indigo-300" 
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300"}`}
+              >
+                {f === "all" ? "All" : f === "unread" ? "Unread" : "Read"}
+              </button>
             ))}
-          </tbody>
-        </table>
-      </div>
+          </div>
+        </div>
 
-      {/* Pagination */}
-      <div className="flex justify-between items-center mt-4">
-        <span className="text-sm text-gray-600">
-          Showing 1 to {filteredMessages.length} of {messages.length} results
-        </span>
-        <div className="space-x-2">
-          <button className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Previous</button>
-          <button className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">1</button>
-          <button className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">2</button>
-          <button className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Next</button>
+        {/* Table */}
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Recipient</th>
+                <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Subject</th>
+                <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date Sent</th>
+                <th className="px-6 py-3.5 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3.5 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100 bg-white">
+              {filteredMessages.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="py-16 text-center text-gray-500">
+                    {searchTerm || filter !== "all"
+                      ? "No messages match your filter or search"
+                      : "No messages yet"}
+                  </td>
+                </tr>
+              ) : (
+                filteredMessages.map((msg) => (
+                  <tr
+                    key={msg.id}
+                    className={`hover:bg-indigo-50/40 transition-colors
+                      ${!msg.isRead ? "bg-indigo-50/20" : ""}`}
+                  >
+                    <td className="px-6 py-4 text-sm text-gray-900">
+                      {highlightText(msg.recipient)}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-900">
+                      {highlightText(msg.subject)}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
+                      {msg.date}
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <span
+                        className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full
+                          ${msg.isRead 
+                            ? "bg-emerald-100 text-emerald-800" 
+                            : "bg-amber-100 text-amber-800 font-medium"}`}
+                      >
+                        {msg.isRead ? "Read" : "Unread"}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-center text-sm space-x-4">
+                      <a href={`/messages/${msg.id}`} className="text-indigo-600 hover:text-indigo-800 hover:underline">
+                        View
+                      </a>
+                      <a href={`/messages/${msg.id}/edit`} className="text-indigo-600 hover:text-indigo-800 hover:underline">
+                        Edit
+                      </a>
+                      <button className="text-red-600 hover:text-red-800 hover:underline">
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
