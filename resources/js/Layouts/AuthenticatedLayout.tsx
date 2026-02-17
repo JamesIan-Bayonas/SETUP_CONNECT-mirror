@@ -462,16 +462,16 @@ export default function AuthenticatedLayout({
               <div className={`space-y-1 ${sidebarOpen ? "pl-3" : ""}`}>
                 {/* View Documents */}
                 <Link
-                  href="/documents" // ← change this route to your actual route
+                  href="/document/view"
                   className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                    isActive("/documents")
+                    isActive("/document/view")
                       ? "bg-indigo-50 text-indigo-600"
                       : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                   }`}
                 >
                   <svg
                     className={`flex-shrink-0 h-5 w-5 ${
-                      isActive("/documents")
+                      isActive("/document/view")
                         ? "text-indigo-600"
                         : "text-gray-400 group-hover:text-gray-500"
                     }`}
