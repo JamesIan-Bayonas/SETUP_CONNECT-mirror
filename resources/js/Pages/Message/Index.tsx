@@ -20,24 +20,8 @@ const FAKE_MESSAGES: Message[] = [
   { id: 7, recipient: "Jennr Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
   { id: 8, recipient: "Jennifer e", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
   { id: 9, recipient: "Jeer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
-  { id: 10, recipient: "Jeer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
-  { id: 11, recipient: "Jeer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
-  { id: 12, recipient: "Jeer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
-  { id: 13, recipient: "Jeer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
-  { id: 14, recipient: "Jeer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
-  { id: 15, recipient: "Jeer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
-  { id: 16, recipient: "Jeer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
-  { id: 17, recipient: "Jeer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
-  { id: 18, recipient: "Jeer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
-  { id: 19, recipient: "Jeer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
-  { id: 20, recipient: "Jeer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
-  { id: 21, recipient: "Jeer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
-  { id: 22, recipient: "Jeer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
-  { id: 23, recipient: "Jeer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
-  { id: 24, recipient: "Jeer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
-  { id: 25, recipient: "Jeer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
-  { id: 26, recipient: "Jeer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
-  { id: 27, recipient: "Jeer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: false },
+  { id: 10, recipient: "Jeer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: false },
+  { id: 11, recipient: "Jeer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: false },
 ];
 
 
@@ -99,7 +83,8 @@ export default function SetupMessageUI() {
 
 
   return (
-    <div className="bg-white shadow-sm rounded-xl border border-gray-200 overflow-hidden">
+    <div className="bg-gray-100 min-h-screen space-y-6">
+    <div className="mb-6 bg-white shadow-sm  border border-gray-200 overflow-hidden">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-5 border-b">
         <h2 className="text-xl font-semibold text-gray-800">
@@ -110,7 +95,9 @@ export default function SetupMessageUI() {
         </button>
       </div>
 
-      <div className="p-5">
+     
+    </div>
+     <div className="p-5 m-10 bg-white rounded-xl">
         {/* Controls row */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-5">
           {/* Search */}
@@ -234,7 +221,7 @@ export default function SetupMessageUI() {
         </div>
         
         {/* Pagination */}
-        <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 mt-4">
+        <div className="flex items-center justify-between border-t border-gray-200 px-4 py-3 sm:px-6 mt-4">
           {/* Mobile view */}
           <div className="flex flex-1 justify-between sm:hidden">
             <button

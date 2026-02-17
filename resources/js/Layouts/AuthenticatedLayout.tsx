@@ -169,14 +169,14 @@ export default function AuthenticatedLayout({ header, children }: PropsWithChild
                   <Link
                     href="/users"
                     className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                      isActive('/users')
+                      isActive('/users') && !showMessages
                         ? 'bg-indigo-50 text-indigo-600'
                         : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                     }`}
                   >
                     <svg
                       className={`flex-shrink-0 h-5 w-5 ${
-                        isActive('/users') ? 'text-indigo-600' : 'text-gray-400 group-hover:text-gray-500'
+                        isActive('/users') && !showMessages ? 'text-indigo-600' : 'text-gray-400 group-hover:text-gray-500'
                       }`}
                       fill="none"
                       viewBox="0 0 24 24"
@@ -192,14 +192,14 @@ export default function AuthenticatedLayout({ header, children }: PropsWithChild
                     <Link
                       href="/org-types"
                       className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                        isActive('/org-types')
+                        isActive('/org-types') && !showMessages
                           ? 'bg-indigo-50 text-indigo-600'
                           : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                       }`}
                     >
                       <svg
                         className={`flex-shrink-0 h-5 w-5 ${
-                          isActive('/org-types') ? 'text-indigo-600' : 'text-gray-400 group-hover:text-gray-500'
+                          isActive('/org-types') && !showMessages ? 'text-indigo-600' : 'text-gray-400 group-hover:text-gray-500'
                         }`}
                         fill="none"
                         viewBox="0 0 24 24"
@@ -256,14 +256,14 @@ export default function AuthenticatedLayout({ header, children }: PropsWithChild
                   <Link
                     href="/customerapprovalform"
                     className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                      isActive('/customerapprovalform')
+                      isActive('/customerapprovalform') && !showMessages
                         ? 'bg-indigo-50 text-indigo-600'
                         : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                     }`}
                   >
                     <svg
                       className={`flex-shrink-0 h-5 w-5 ${
-                        isActive('/customerapprovalform') ? 'text-indigo-600' : 'text-gray-400 group-hover:text-gray-500'
+                        isActive('/customerapprovalform') && !showMessages ? 'text-indigo-600' : 'text-gray-400 group-hover:text-gray-500'
                       }`}
                       fill="none"
                       viewBox="0 0 24 24"
@@ -278,14 +278,14 @@ export default function AuthenticatedLayout({ header, children }: PropsWithChild
                   <Link
                     href="/setupcustomers"
                     className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                      isActive('/setupcustomers')
+                      isActive('/setupcustomers') && !showMessages
                         ? 'bg-indigo-50 text-indigo-600'
                         : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                     }`}
                   >
                     <svg
                       className={`flex-shrink-0 h-5 w-5 ${
-                        isActive('/setupcustomers') ? 'text-indigo-600' : 'text-gray-400 group-hover:text-gray-500'
+                        isActive('/setupcustomers')&& !showMessages ? 'text-indigo-600' : 'text-gray-400 group-hover:text-gray-500'
                       }`}
                       fill="none"
                       viewBox="0 0 24 24"
@@ -462,7 +462,7 @@ export default function AuthenticatedLayout({ header, children }: PropsWithChild
                         href="/users"
                         onClick={() => setMobileMenuOpen(false)}
                         className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg ${
-                          isActive('/users')
+                          isActive('/users') 
                             ? 'bg-indigo-50 text-indigo-600'
                             : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                         }`}
@@ -478,7 +478,7 @@ export default function AuthenticatedLayout({ header, children }: PropsWithChild
                           href="/org-types"
                           onClick={() => setMobileMenuOpen(false)}
                           className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg ${
-                            isActive('/org-types')
+                            isActive('/org-types') 
                               ? 'bg-indigo-50 text-indigo-600'
                               : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                           }`}
@@ -526,7 +526,7 @@ export default function AuthenticatedLayout({ header, children }: PropsWithChild
                         href="/customerapprovalform"
                         onClick={() => setMobileMenuOpen(false)}
                         className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg ${
-                          isActive('/customerapprovalform')
+                          isActive('/customerapprovalform') 
                             ? 'bg-indigo-50 text-indigo-600'
                             : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                         }`}
@@ -541,7 +541,7 @@ export default function AuthenticatedLayout({ header, children }: PropsWithChild
                         href="/setupcustomers"
                         onClick={() => setMobileMenuOpen(false)}
                         className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg ${
-                          isActive('/setupcustomers')
+                          isActive('/setupcustomers') 
                             ? 'bg-indigo-50 text-indigo-600'
                             : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                         }`}
@@ -566,14 +566,13 @@ export default function AuthenticatedLayout({ header, children }: PropsWithChild
           sidebarOpen ? 'lg:pl-64' : 'lg:pl-20'
         }`}
       >
-        {header && (
-          <header className="bg-white shadow">
-            <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-              {header}
-            </div>
-          </header>
-        )}
-
+      {!showMessages && header && ( 
+  <header className="bg-white shadow">
+    <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+      {header}
+    </div>
+  </header>
+)}
         <main>
     {showMessages ? (
         // If the switch is ON, show the Message List
