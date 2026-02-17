@@ -757,6 +757,76 @@ export default function AuthenticatedLayout({
                   )}
                 </div>
               )}
+              {/* Document Section - Mobile */}
+              <div className="space-y-1">
+                <button
+                  onClick={() => setDocumentOpen(!documentOpen)}
+                  className="group w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-50 hover:text-gray-900"
+                >
+                  <div className="flex items-center">
+                    <svg
+                      className="flex-shrink-0 h-6 w-6 mr-3"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2m-4-6v4m4-4v4"
+                      />
+                    </svg>
+                    Document
+                  </div>
+                  <svg
+                    className={`h-5 w-5 text-gray-400 transform transition-transform ${
+                      documentOpen ? "rotate-90" : ""
+                    }`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </button>
+
+                {documentOpen && (
+                  <div className="pl-3 space-y-1">
+                    <Link
+                      href="/documents"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg ${
+                        isActive("/documents")
+                          ? "bg-indigo-50 text-indigo-600"
+                          : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                      }`}
+                    >
+                      <svg
+                        className="flex-shrink-0 h-5 w-5 mr-3"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                        />
+                      </svg>
+                      View
+                    </Link>
+
+                    {/* Add more items here if needed */}
+                  </div>
+                )}
+              </div>
             </nav>
           </aside>
         </>
