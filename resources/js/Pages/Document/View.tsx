@@ -9,7 +9,7 @@ export default function ViewDocuments() {
     <AuthenticatedLayout>
       <div className="p-6">
         <div className="flex justify-between items-center mb-4">
-          <h1 className="text-2xl font-bold text-gray-800">📂 Documents</h1>
+          <h1 className="text-2xl font-bold text-gray-800">Documents</h1>
           {/* Create New Document Button */}
           <button className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">
             + Create New Document
@@ -42,8 +42,8 @@ export default function ViewDocuments() {
             <tbody className="divide-y divide-gray-200">
               {/* Dummy Data Rows */}
               <tr>
-                <td className="px-4 py-2">Contract</td>
-                <td className="px-4 py-2">Cooperator A</td>
+                <td className="px-4 py-2">Payslip</td>
+                <td className="px-4 py-2">Seth Lawrence Omandam</td>
                 <td className="px-4 py-2">Feb 17, 2026</td>
                 <td className="px-4 py-2">
                   <button className="text-blue-600 hover:underline">View</button>
@@ -52,8 +52,8 @@ export default function ViewDocuments() {
                 </td>
               </tr>
               <tr>
-                <td className="px-4 py-2">Billing Statement</td>
-                <td className="px-4 py-2">Cooperator B</td>
+                <td className="px-4 py-2">Community Tax Certificate (Cedula)</td>
+                <td className="px-4 py-2">Kristian Lloyd Pague</td>
                 <td className="px-4 py-2">Feb 16, 2026</td>
                 <td className="px-4 py-2">
                   <button className="text-blue-600 hover:underline">View</button>
@@ -62,8 +62,8 @@ export default function ViewDocuments() {
                 </td>
               </tr>
               <tr>
-                <td className="px-4 py-2">Quarterly Report</td>
-                <td className="px-4 py-2">Cooperator C</td>
+                <td className="px-4 py-2">Utility Bills</td>
+                <td className="px-4 py-2">Libertine Valdehueza</td>
                 <td className="px-4 py-2">Feb 15, 2026</td>
                 <td className="px-4 py-2">
                   <button className="text-blue-600 hover:underline">View</button>
@@ -72,8 +72,8 @@ export default function ViewDocuments() {
                 </td>
               </tr>
               <tr>
-                <td className="px-4 py-2">Project Proposal</td>
-                <td className="px-4 py-2">Cooperator D</td>
+                <td className="px-4 py-2">Employer Income Certificate</td>
+                <td className="px-4 py-2">Jeevon Ricafort</td>
                 <td className="px-4 py-2">Feb 14, 2026</td>
                 <td className="px-4 py-2">
                   <button className="text-blue-600 hover:underline">View</button>
@@ -82,8 +82,8 @@ export default function ViewDocuments() {
                 </td>
               </tr>
               <tr>
-                <td className="px-4 py-2">Monitoring Data</td>
-                <td className="px-4 py-2">Cooperator E</td>
+                <td className="px-4 py-2">Tax Returns</td>
+                <td className="px-4 py-2">Neo Echavez</td>
                 <td className="px-4 py-2">Feb 13, 2026</td>
                 <td className="px-4 py-2">
                   <button className="text-blue-600 hover:underline">View</button>
