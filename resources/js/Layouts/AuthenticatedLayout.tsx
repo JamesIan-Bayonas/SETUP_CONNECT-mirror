@@ -307,36 +307,46 @@ export default function AuthenticatedLayout({ header, children }: PropsWithChild
           {(user.user_type === 'admin' || user.user_type === 'psto_staff') && (
             <div className="space-y-1">
               {/* message Group Header */}
-              <button
-                onClick={() => setMessageOpen(!messageOpen)}
-                className="group w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-colors"
-              >
-                <div className="flex items-center">
-                  <svg
-                    className="flex-shrink-0 h-6 w-6 text-gray-400 group-hover:text-gray-500"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                   <path 
-                    strokeLinecap="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" 
-  />
-                  </svg>
-                  {sidebarOpen && <span className="ml-3">Messages</span>}
-                </div>
-                {sidebarOpen && (
-                  <svg
-                    className={`h-5 w-5 text-gray-400 transform transition-transform ${
-                      messageOpen ? 'rotate-90' : ''
-                    }`}
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                )}
-              </button>
+            <button
+              onClick={() => setMessageOpen(!messageOpen)}
+              className="group w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-colors"
+            >
+              <div className="flex items-center">
+                <svg
+                  className="flex-shrink-0 h-6 w-6 text-gray-400 group-hover:text-gray-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 8l9 6 9-6M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                  />
+                </svg>
+
+                {sidebarOpen && <span className="ml-3">Messages</span>}
+              </div>
+
+              {sidebarOpen && (
+                <svg
+                  className={`h-5 w-5 text-gray-400 transform transition-transform ${
+                    messageOpen ? 'rotate-90' : ''
+                  }`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              )}
+            </button>
 
               {/* message Sub-items */}
               {(messageOpen || !sidebarOpen) && (
