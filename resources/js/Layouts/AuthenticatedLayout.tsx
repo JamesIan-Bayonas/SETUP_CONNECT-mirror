@@ -1,7 +1,7 @@
 import { PropsWithChildren, ReactNode, useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import { User } from '@/types';
-import Index from '@/Pages/Message';
+import Index from '@/Pages/Message/Index';
 interface AuthenticatedLayoutProps {
   header?: ReactNode;
 }
@@ -9,8 +9,8 @@ interface AuthenticatedLayoutProps {
 export default function AuthenticatedLayout({ header, children }: PropsWithChildren<AuthenticatedLayoutProps>) {
   const user = usePage<{ auth: { user: User } }>().props.auth.user;
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [managementOpen, setManagementOpen] = useState(true);
-  const [setupOpen, setSetupOpen] = useState(true);
+  const [managementOpen, setManagementOpen] = useState(false);
+  const [setupOpen, setSetupOpen] = useState(false);
   const [messageOpen, setMessageOpen] = useState(false);
   const [showMessages, setShowMessages] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
