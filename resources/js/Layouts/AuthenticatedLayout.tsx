@@ -1,7 +1,6 @@
 import { PropsWithChildren, ReactNode, useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import { User } from '@/types';
-import Index from '@/Pages/Message/Index';
 interface AuthenticatedLayoutProps {
   header?: ReactNode;
 }
@@ -12,7 +11,6 @@ export default function AuthenticatedLayout({ header, children }: PropsWithChild
   const [managementOpen, setManagementOpen] = useState(false);
   const [setupOpen, setSetupOpen] = useState(false);
   const [messageOpen, setMessageOpen] = useState(false);
-  const [showMessages, setShowMessages] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const currentPath = usePage().url;
 
@@ -115,6 +113,7 @@ export default function AuthenticatedLayout({ header, children }: PropsWithChild
                 ? 'bg-indigo-50 text-indigo-600'
                 : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
             }`}
+            
           >
             <svg
               className={`flex-shrink-0 h-6 w-6 ${
@@ -169,14 +168,14 @@ export default function AuthenticatedLayout({ header, children }: PropsWithChild
                   <Link
                     href="/users"
                     className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                      isActive('/users') && !showMessages
+                      isActive('/users')
                         ? 'bg-indigo-50 text-indigo-600'
                         : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                     }`}
                   >
                     <svg
                       className={`flex-shrink-0 h-5 w-5 ${
-                        isActive('/users') && !showMessages ? 'text-indigo-600' : 'text-gray-400 group-hover:text-gray-500'
+                        isActive('/users') ? 'text-indigo-600' : 'text-gray-400 group-hover:text-gray-500'
                       }`}
                       fill="none"
                       viewBox="0 0 24 24"
@@ -192,14 +191,14 @@ export default function AuthenticatedLayout({ header, children }: PropsWithChild
                     <Link
                       href="/org-types"
                       className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                        isActive('/org-types') && !showMessages
+                        isActive('/org-types')
                           ? 'bg-indigo-50 text-indigo-600'
                           : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                       }`}
                     >
                       <svg
                         className={`flex-shrink-0 h-5 w-5 ${
-                          isActive('/org-types') && !showMessages ? 'text-indigo-600' : 'text-gray-400 group-hover:text-gray-500'
+                          isActive('/org-types') ? 'text-indigo-600' : 'text-gray-400 group-hover:text-gray-500'
                         }`}
                         fill="none"
                         viewBox="0 0 24 24"
@@ -256,14 +255,14 @@ export default function AuthenticatedLayout({ header, children }: PropsWithChild
                   <Link
                     href="/customerapprovalform"
                     className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                      isActive('/customerapprovalform') && !showMessages
+                      isActive('/customerapprovalform') 
                         ? 'bg-indigo-50 text-indigo-600'
                         : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                     }`}
                   >
                     <svg
                       className={`flex-shrink-0 h-5 w-5 ${
-                        isActive('/customerapprovalform') && !showMessages ? 'text-indigo-600' : 'text-gray-400 group-hover:text-gray-500'
+                        isActive('/customerapprovalform') ? 'text-indigo-600' : 'text-gray-400 group-hover:text-gray-500'
                       }`}
                       fill="none"
                       viewBox="0 0 24 24"
@@ -278,14 +277,14 @@ export default function AuthenticatedLayout({ header, children }: PropsWithChild
                   <Link
                     href="/setupcustomers"
                     className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                      isActive('/setupcustomers') && !showMessages
+                      isActive('/setupcustomers')
                         ? 'bg-indigo-50 text-indigo-600'
                         : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                     }`}
                   >
                     <svg
                       className={`flex-shrink-0 h-5 w-5 ${
-                        isActive('/setupcustomers')&& !showMessages ? 'text-indigo-600' : 'text-gray-400 group-hover:text-gray-500'
+                        isActive('/setupcustomers') ? 'text-indigo-600' : 'text-gray-400 group-hover:text-gray-500'
                       }`}
                       fill="none"
                       viewBox="0 0 24 24"
@@ -301,95 +300,83 @@ export default function AuthenticatedLayout({ header, children }: PropsWithChild
           )}
 
 
-          
-
-            {/* message  */}
+          {/* Messages Section */}
           {(user.user_type === 'admin' || user.user_type === 'psto_staff') && (
             <div className="space-y-1">
-              {/* message Group Header */}
-            <button
-              onClick={() => setMessageOpen(!messageOpen)}
-              className="group w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-colors"
-            >
-              <div className="flex items-center">
-                <svg
-                  className="flex-shrink-0 h-6 w-6 text-gray-400 group-hover:text-gray-500"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M3 8l9 6 9-6M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                  />
-                </svg>
+              {/* Message Group Header */}
+              <button
+                onClick={() => setMessageOpen(!messageOpen)}
+                className="group w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-colors"
+              >
+                <div className="flex items-center">
+                  <svg
+                    className="flex-shrink-0 h-6 w-6 text-gray-400 group-hover:text-gray-500"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 8l9 6 9-6M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                    />
+                  </svg>
+                  {sidebarOpen && <span className="ml-3">Messages</span>}
+                </div>
 
-                {sidebarOpen && <span className="ml-3">Messages</span>}
-              </div>
+                {sidebarOpen && (
+                  <svg
+                    className={`h-5 w-5 text-gray-400 transform transition-transform ${
+                      messageOpen ? 'rotate-90' : ''
+                    }`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                )}
+              </button>
 
-              {sidebarOpen && (
-                <svg
-                  className={`h-5 w-5 text-gray-400 transform transition-transform ${
-                    messageOpen ? 'rotate-90' : ''
-                  }`}
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
-              )}
-            </button>
-
-              {/* message Sub-items */}
+              {/* Message Sub-items */}
               {(messageOpen || !sidebarOpen) && (
                 <div className={`space-y-1 ${sidebarOpen ? 'pl-3' : ''}`}>
-               
-
-                  {/* message Clients */}
-                  <button
-                  type="button" onClick={(e) => {e.preventDefault(); // Stops the browser from trying to load a link
-                  setShowMessages(true);   // Turns ON the message screen
-                    }}
-                  className={`w-full group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                 showMessages // If switch is ON, make this button look active (blue)
-                              ? 'bg-indigo-50 text-indigo-600'
-                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  {/* Sent Message Link */}
+                  <Link
+                    href="/messages"
+                    className={`w-full group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                      isActive('/messages')
+                        ? 'bg-indigo-50 text-indigo-600'
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                     }`}
->
-  {/* Sent Message Icon (Paper Airplane) */}
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    className="h-5 w-5"
-    fill="none"
-    viewBox="0 0 24 24"
-    stroke="currentColor"
-  >
-    <path
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      stroke-width="2"
-      d="M3 3l18 9-18 9 4-9-4-9z"
-    />
-  </svg>
-
-  
-  {/* The Text */}
-  {sidebarOpen && <span className="ml-3">Sent Message</span>}
-</button>
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M3 3l18 9-18 9 4-9-4-9z"
+                      />
+                    </svg>
+                    {sidebarOpen && <span className="ml-3">Sent Message</span>}
+                  </Link>
                 </div>
               )}
             </div>
           )}
         </nav>
-
         {/* Sidebar Footer - Collapse Hint */}
         {sidebarOpen && (
           <div className="p-3 border-t border-gray-200">
@@ -566,22 +553,17 @@ export default function AuthenticatedLayout({ header, children }: PropsWithChild
           sidebarOpen ? 'lg:pl-64' : 'lg:pl-20'
         }`}
       >
-      {!showMessages && header && ( 
+      {header && ( 
   <header className="bg-white shadow">
     <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
       {header}
     </div>
   </header>
 )}
-        <main>
-    {showMessages ? (
-        // If the switch is ON, show the Message List
-        <Index/>
-    ) : (
-        // If the switch is OFF, show the normal page (like index.tsx)
-        children
-    )}
-</main>
+    <main>
+  
+       {children} 
+    </main>
       </div>
     </div>
   );
