@@ -1,6 +1,7 @@
 import { PropsWithChildren, ReactNode, useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import { User } from '@/types';
+import CreateMessageModal from '@/Pages/Messages/CreateMessageModal';
 
 interface AuthenticatedLayoutProps {
   header?: ReactNode;
@@ -8,6 +9,7 @@ interface AuthenticatedLayoutProps {
 
 export default function AuthenticatedLayout({ header, children }: PropsWithChildren<AuthenticatedLayoutProps>) {
   const user = usePage<{ auth: { user: User } }>().props.auth.user;
+  const [isMessageModalOpen, setMessageModalOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [managementOpen, setManagementOpen] = useState(true);
   const [setupOpen, setSetupOpen] = useState(true);
@@ -126,6 +128,22 @@ export default function AuthenticatedLayout({ header, children }: PropsWithChild
             </svg>
             {sidebarOpen && <span className="ml-3">Dashboard</span>}
           </Link>
+
+          {/* Messages Trigger Button (Desktop) */}
+          <button
+            onClick={() => setMessageModalOpen(true)}
+            className="w-full group flex items-center px-3 py-2 text-sm font-medium rounded-lg text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+          >
+            <svg
+              className="flex-shrink-0 h-6 w-6 text-gray-400 group-hover:text-gray-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+            {sidebarOpen && <span className="ml-3">New Message</span>}
+          </button>
 
           {/* Management Section - Only for admin and psto_staff */}
           {(user.user_type === 'admin' || user.user_type === 'psto_staff') && (
@@ -340,6 +358,20 @@ export default function AuthenticatedLayout({ header, children }: PropsWithChild
                 Dashboard
               </Link>
 
+              {/* Messages Trigger Button (Mobile) */}
+              <button
+                onClick={() => {
+                    setMessageModalOpen(true);
+                    setMobileMenuOpen(false);
+                }}
+                className="w-full group flex items-center px-3 py-2 text-sm font-medium rounded-lg text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+              >
+                <svg className="flex-shrink-0 h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                New Message
+              </button>
+
               {/* Management Section */}
               {(user.user_type === 'admin' || user.user_type === 'psto_staff') && (
                 <div className="space-y-1">
@@ -485,6 +517,10 @@ export default function AuthenticatedLayout({ header, children }: PropsWithChild
 
         <main className="min-h-[calc(100vh-4rem)]">{children}</main>
       </div>
+      <CreateMessageModal 
+        isOpen={isMessageModalOpen} 
+        onClose={() => setMessageModalOpen(false)} 
+      />
     </div>
   );
 }
