@@ -590,10 +590,10 @@ export default function AuthenticatedLayout({ header, children }: PropsWithChild
                 {documentOpen && (
                   <div className="pl-3 space-y-1">
                     <Link
-                      href="/documents"
+                      href="/document/view"
                       onClick={() => setMobileMenuOpen(false)}
                       className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg ${
-                        isActive("/documents")
+                        isActive("/document")
                           ? "bg-indigo-50 text-indigo-600"
                           : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                       }`}
