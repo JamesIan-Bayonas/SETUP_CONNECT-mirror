@@ -13,14 +13,11 @@ export default function ViewDocuments() {
   return (
     <AuthenticatedLayout>
       <div className="py-6 px-6">
-        {/* Header - more like Customer Management */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-800">Documents</h1>
         </div>
 
-        {/* Filters + Search + Add Button row */}
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          {/* Status filter buttons - adapted for documents (you can adjust options) */}
           <div className="flex flex-wrap gap-2">
             <button className="px-4 py-1.5 text-sm font-medium rounded-md bg-blue-600 text-white">
               All (5)
@@ -31,7 +28,6 @@ export default function ViewDocuments() {
             <button className="px-4 py-1.5 text-sm font-medium rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300">
               Oldest
             </button>
-            {/* Add more filters if needed, e.g. by type */}
           </div>
 
           {/* Search + Create button */}
@@ -94,8 +90,44 @@ export default function ViewDocuments() {
                   </td>
                 </tr>
 
-                {/* Add your other rows the same way */}
-                {/* Utility Bills, Tax Returns, Employer Income Certificate... */}
+                <tr className="hover:bg-gray-50">
+                  <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">Utility Bills</td>
+                  <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-600">Libertine Valdehueza</td>
+                  <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-600">Feb 15, 2026</td>
+                  <td className="whitespace-nowrap px-6 py-4 text-sm">
+                    <div className="flex items-center gap-4">
+                      <button className="text-blue-600 hover:text-blue-800">View</button>
+                      <button className="text-green-600 hover:text-green-800">Edit</button>
+                      <button className="text-red-600 hover:text-red-800">Delete</button>
+                    </div>
+                  </td>
+                </tr>
+
+                <tr className="hover:bg-gray-50">
+                  <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">Employer Income Certificate</td>
+                  <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-600">Jeevon Ricafort</td>
+                  <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-600">Feb 14, 2026</td>
+                  <td className="whitespace-nowrap px-6 py-4 text-sm">
+                    <div className="flex items-center gap-4">
+                      <button className="text-blue-600 hover:text-blue-800">View</button>
+                      <button className="text-green-600 hover:text-green-800">Edit</button>
+                      <button className="text-red-600 hover:text-red-800">Delete</button>
+                    </div>
+                  </td>
+                </tr>
+
+                <tr className="hover:bg-gray-50">
+                  <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">Tax Returns</td>
+                  <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-600">Neo Echavez</td>
+                  <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-600">Feb 13, 2026</td>
+                  <td className="whitespace-nowrap px-6 py-4 text-sm">
+                    <div className="flex items-center gap-4">
+                      <button className="text-blue-600 hover:text-blue-800">View</button>
+                      <button className="text-green-600 hover:text-green-800">Edit</button>
+                      <button className="text-red-600 hover:text-red-800">Delete</button>
+                    </div>
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -105,12 +137,6 @@ export default function ViewDocuments() {
             <div>
               Showing {startItem} to {endItem} of {totalItems} results
             </div>
-            {/* If you want minimal pagination like the first photo when few pages: */}
-            {/* <div className="flex items-center gap-3">
-              <button disabled={page === 1} className="text-gray-400">« Previous</button>
-              <span className="font-medium text-gray-900">{page}</span>
-              <button disabled={page === totalPages} className="text-gray-400">Next »</button>
-            </div> */}
           </div>
         </div>
       </div>
