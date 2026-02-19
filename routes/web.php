@@ -9,6 +9,7 @@ use App\Http\Controllers\SetUpCustomerController;
 use App\Http\Controllers\Web\BusinessOrganizationTypeController;
 use App\Events\CustomerApplicationApproved;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
 // Redirect root to login
 Route::get('/', function () {
@@ -157,4 +158,10 @@ HTML);
         );
         return 'Dispatched test approval event to ' . $to;
     });
+
 }
+
+// Document view route
+Route::get('/document/view', function () {
+    return Inertia::render('Document/View');
+});
