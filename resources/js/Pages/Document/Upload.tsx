@@ -41,13 +41,10 @@ export default function Upload() {
     const handleCloseUploadComplete = () => {
         setIsUploadComplete(false);
     };
-
-    // NEW: close modal and return to previous route
     const handleCloseModal = () => window.history.back();
 
     return (
         <AuthenticatedLayout>
-            {/* Render the Upload form as a centered modal so it looks like your screenshot */}
             <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
                 <div
                     className={`
@@ -95,7 +92,6 @@ export default function Upload() {
                     {/* Card Body */}
                     <div className="px-6 py-5">
                         <form className="space-y-5">
-                            {/* File Upload section – unchanged */}
                             <div>
                                 <label className="mb-1.5 block text-sm font-medium text-slate-700">
                                     Select File <span className="text-red-500">*</span>
@@ -274,7 +270,6 @@ export default function Upload() {
                 </div>
             </div>
 
-            {/* Upload Complete Modal – already has nice overlay */}
             {isUploadComplete && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
                     <div className="relative w-full max-w-xl rounded-2xl bg-white p-6 shadow-2xl">
