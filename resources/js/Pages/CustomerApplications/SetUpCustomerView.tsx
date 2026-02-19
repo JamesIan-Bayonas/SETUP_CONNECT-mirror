@@ -4,6 +4,19 @@ import { useState } from "react";
 import AddCustomerModal from "@/Pages/CustomerApplications/AddCutomerModal";
 import { usePage } from "@inertiajs/react";
 import { useEffect } from "react";
+import type { ManifestationOfIntent } from "@/types";
+
+const INTERVENTION_OPTIONS = [
+    { key: 'technology_transfer', label: 'Technology Transfer' },
+    { key: 'training',            label: 'Training / Seminar / Workshop' },
+    { key: 'consultancy',         label: 'Consultancy / Technical Assistance' },
+    { key: 'equipment',           label: 'Equipment / Machinery Provision' },
+    { key: 'product_development', label: 'Product Development' },
+    { key: 'packaging_labeling',  label: 'Packaging & Labeling' },
+    { key: 'quality_standards',   label: 'Quality & Standards Compliance' },
+    { key: 'market_linkage',      label: 'Market Linkage / Trade Fair' },
+    { key: 'other',               label: 'Other' },
+] as const;
 
 interface SetUpCustomer {
     id: number;
@@ -13,6 +26,29 @@ interface SetUpCustomer {
     businessCount: number;
     isActive: boolean;
     createdAt: string;
+}
+
+interface DocumentSlot {
+    id: number;
+    requirement_id: number;
+    document_type_name: string;
+    require_attachment: boolean;
+    status: 'pending' | 'submitted' | 'verified' | 'rejected';
+    file_path: string | null;
+    original_filename: string | null;
+    remarks: string | null;
+    uploaded_by_name: string | null;
+    verified_by_name: string | null;
+    verified_at: string | null;
+    audit_logs: {
+        action: string;
+        status_before: string | null;
+        status_after: string;
+        original_filename: string | null;
+        remarks: string | null;
+        performed_by_name: string | null;
+        created_at: string;
+    }[];
 }
 
 interface Business {
@@ -29,6 +65,8 @@ interface Business {
     website?: string;
     is_active: boolean;
     created_at: string;
+    documents: DocumentSlot[];
+    moi: ManifestationOfIntent | null;
 }
 
 interface CustomerDetails {
@@ -126,6 +164,40 @@ export default function SetUpCustomerView({ customers }: Props) {
 
     // ADDED: modal state for Add Customer button
     const [showModal, setShowModal] = useState(false);
+    // Document upload & review states
+    const [uploadingDocId, setUploadingDocId] = useState<number | null>(null);
+    const [rejectingDocId, setRejectingDocId] = useState<number | null>(null);
+    const [rejectRemarks, setRejectRemarks] = useState('');
+    // MOI states
+    const [moiSchedulingId, setMoiSchedulingId] = useState<number | null>(null);
+    const [moiSubmitting, setMoiSubmitting] = useState(false);
+    const [moiAcknowledging, setMoiAcknowledging] = useState<number | null>(null);
+    const [moiUploadingId, setMoiUploadingId] = useState<number | null>(null);
+    const [tnaForm, setTnaForm] = useState({ scheduled_date: '', location: '', conducted_by: '', notes: '' });
+    // Staff MOI entry form (per-moi id)
+    const [staffMoiForms, setStaffMoiForms] = useState<Record<number, {
+        interventions: string[];
+        other_intervention: string;
+        training_specify: string;
+        proponent_name: string;
+        proponent_date: string;
+        proponent_address: string;
+        proponent_contact: string;
+        file: File | null;
+    }>>({});
+    const [staffMoiFormOpen, setStaffMoiFormOpen] = useState<Record<number, boolean>>({});
+
+    const getStaffMoiForm = (moiId: number) => staffMoiForms[moiId] ?? {
+        interventions: [], other_intervention: '', training_specify: '',
+        proponent_name: '', proponent_date: '', proponent_address: '',
+        proponent_contact: '', file: null,
+    };
+    const setStaffMoiField = (moiId: number, field: string, value: unknown) =>
+        setStaffMoiForms(prev => ({ ...prev, [moiId]: { ...getStaffMoiForm(moiId), [field]: value } }));
+    const toggleStaffIntervention = (moiId: number, key: string) => {
+        const cur = getStaffMoiForm(moiId).interventions;
+        setStaffMoiField(moiId, 'interventions', cur.includes(key) ? cur.filter(k => k !== key) : [...cur, key]);
+    };
     // Filter states
     const [statusFilter, setStatusFilter] = useState<string>("All");
     const [searchQuery, setSearchQuery] = useState<string>("");
@@ -171,6 +243,171 @@ export default function SetUpCustomerView({ customers }: Props) {
 
     const closeModal = () => {
         setViewingCustomer(null);
+    };
+
+    const getCsrf = () =>
+        document.head
+            .querySelector<HTMLMetaElement>('meta[name="csrf-token"]')
+            ?.content ?? '';
+
+    const refreshCustomer = async (id: number) => {
+        const res = await fetch(`/setupcustomers/${id}`);
+        const data = await res.json();
+        setViewingCustomer(data);
+    };
+
+    const handleDocUpload = async (docId: number, file?: File) => {
+        if (!file || !viewingCustomer) return;
+        const formData = new FormData();
+        formData.append('file', file);
+        setUploadingDocId(docId);
+        try {
+            const res = await fetch(`/customer-documents/${docId}/upload`, {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': getCsrf() },
+                body: formData,
+            });
+            if (!res.ok) throw new Error('Upload failed');
+            await refreshCustomer(viewingCustomer.id);
+        } catch {
+            alert('Upload failed. Please try again.');
+        } finally {
+            setUploadingDocId(null);
+        }
+    };
+
+    const handleVerify = async (docId: number) => {
+        if (!viewingCustomer) return;
+        const res = await fetch(`/customer-documents/${docId}/verify`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': getCsrf(),
+            },
+            body: JSON.stringify({}),
+        });
+        if (!res.ok) { alert('Failed to verify document.'); return; }
+        await refreshCustomer(viewingCustomer.id);
+    };
+
+    const handleReject = async (docId: number) => {
+        if (!rejectRemarks.trim()) { alert('Please enter rejection remarks.'); return; }
+        if (!viewingCustomer) return;
+        const res = await fetch(`/customer-documents/${docId}/reject`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': getCsrf(),
+            },
+            body: JSON.stringify({ remarks: rejectRemarks }),
+        });
+        if (!res.ok) { alert('Failed to reject document.'); return; }
+        setRejectingDocId(null);
+        setRejectRemarks('');
+        await refreshCustomer(viewingCustomer.id);
+    };
+
+    const handleMoiAcknowledge = async (moiId: number) => {
+        if (!viewingCustomer) return;
+        setMoiAcknowledging(moiId);
+        try {
+            const res = await fetch(`/moi/${moiId}/acknowledge`, {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': getCsrf() },
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                alert(data.message ?? 'Failed to acknowledge MOI.');
+                // Refresh so the UI reflects the actual current state
+                await refreshCustomer(viewingCustomer.id);
+                return;
+            }
+            await refreshCustomer(viewingCustomer.id);
+        } finally {
+            setMoiAcknowledging(null);
+        }
+    };
+
+    const handleScheduleTna = async (moiId: number) => {
+        if (!tnaForm.scheduled_date || !tnaForm.location) {
+            alert('Please fill in the date and location.');
+            return;
+        }
+        setMoiSubmitting(true);
+        try {
+            const res = await fetch(`/moi/${moiId}/schedule-tna`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': getCsrf() },
+                body: JSON.stringify(tnaForm),
+            });
+            if (!res.ok) { alert('Failed to schedule TNA.'); return; }
+            setMoiSchedulingId(null);
+            setTnaForm({ scheduled_date: '', location: '', conducted_by: '', notes: '' });
+            await refreshCustomer(viewingCustomer!.id);
+        } finally {
+            setMoiSubmitting(false);
+        }
+    };
+
+    const handleStaffMoiUpload = async (moiId: number) => {
+        const form = getStaffMoiForm(moiId);
+        if (!form.file || !viewingCustomer) return;
+        setMoiUploadingId(moiId);
+        try {
+            const fd = new FormData();
+            fd.append('signed_form', form.file);
+            form.interventions.forEach(v => fd.append('interventions[]', v));
+            if (form.other_intervention) fd.append('other_intervention', form.other_intervention);
+            if (form.training_specify)   fd.append('training_specify', form.training_specify);
+            if (form.proponent_name)     fd.append('proponent_name', form.proponent_name);
+            if (form.proponent_date)     fd.append('proponent_date', form.proponent_date);
+            if (form.proponent_address)  fd.append('proponent_address', form.proponent_address);
+            if (form.proponent_contact)  fd.append('proponent_contact', form.proponent_contact);
+            const res = await fetch(`/moi/${moiId}/upload`, {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': getCsrf() },
+                body: fd,
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) { alert(data.message ?? 'Upload failed.'); return; }
+            setStaffMoiFormOpen(prev => ({ ...prev, [moiId]: false }));
+            setStaffMoiForms(prev => { const next = { ...prev }; delete next[moiId]; return next; });
+            await refreshCustomer(viewingCustomer.id);
+        } finally {
+            setMoiUploadingId(null);
+        }
+    };
+
+    const moiStatusBadge = (status: ManifestationOfIntent['status']) => {
+        const cls: Record<string, string> = {
+            pending_upload: 'bg-yellow-100 text-yellow-800',
+            uploaded:       'bg-blue-100 text-blue-800',
+            acknowledged:   'bg-green-100 text-green-800',
+        };
+        const label: Record<string, string> = {
+            pending_upload: 'Pending Upload',
+            uploaded:       'Uploaded',
+            acknowledged:   'Acknowledged',
+        };
+        return (
+            <span className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded-full ${cls[status] ?? 'bg-gray-100 text-gray-800'}`}>
+                {label[status] ?? status}
+            </span>
+        );
+    };
+
+    const statusBadge = (status: DocumentSlot['status']) => {
+        const cls: Record<string, string> = {
+            pending:   'bg-yellow-100 text-yellow-800',
+            submitted: 'bg-blue-100 text-blue-800',
+            verified:  'bg-green-100 text-green-800',
+            rejected:  'bg-red-100 text-red-800',
+        };
+        return (
+            <span className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded-full ${cls[status] ?? 'bg-gray-100 text-gray-800'}`}>
+                {status.charAt(0).toUpperCase() + status.slice(1)}
+            </span>
+        );
     };
 
     return (
@@ -645,6 +882,377 @@ export default function SetUpCustomerView({ customers }: Props) {
                                                         </p>
                                                     </div>
                                                 </div>
+
+                                                {/* MOI Section — shown first */}
+                                                <div className="mt-4 pt-4 border-t">
+                                                    <div className="flex items-center justify-between mb-2">
+                                                        <h6 className="text-sm font-semibold text-gray-700">Manifestation of Intent</h6>
+                                                        {business.moi && moiStatusBadge(business.moi.status)}
+                                                    </div>
+                                                    {!business.moi ? (
+                                                        <p className="text-sm text-gray-400">No MOI record found.</p>
+                                                    ) : (
+                                                        <div className="bg-white border rounded-lg p-3 text-sm">
+                                                            {business.moi.signed_file_path ? (
+                                                                <div className="mb-2">
+                                                                    <span className="text-gray-600 font-medium">Signed Form: </span>
+                                                                    <a href={`/storage/${business.moi.signed_file_path}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{business.moi.original_filename}</a>
+                                                                    {' · '}
+                                                                    <a href={`/storage/${business.moi.signed_file_path}`} download={business.moi.original_filename ?? undefined} className="text-indigo-600 hover:underline">Download</a>
+                                                                </div>
+                                                            ) : (
+                                                                <p className="text-gray-500 italic mb-2">No signed form uploaded yet.</p>
+                                                            )}
+                                                            {/* Staff upload / re-upload — full form */}
+                                                            <button
+                                                                onClick={() => setStaffMoiFormOpen(prev => ({ ...prev, [business.moi!.id]: !prev[business.moi!.id] }))}
+                                                                className="text-xs px-2 py-1 rounded border font-medium transition mb-2 bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
+                                                            >
+                                                                {staffMoiFormOpen[business.moi.id] ? 'Cancel Entry' : business.moi.signed_file_path ? 'Re-enter / Update MOI' : 'Enter MOI Details'}
+                                                            </button>
+                                                            {staffMoiFormOpen[business.moi.id] && (() => {
+                                                                const sf = getStaffMoiForm(business.moi!.id);
+                                                                const moiId = business.moi!.id;
+                                                                return (
+                                                                    <div className="mb-3 p-3 bg-gray-50 rounded border border-gray-200 space-y-3">
+                                                                        <p className="text-xs font-semibold text-gray-700">MOI Details</p>
+                                                                        {/* Interventions */}
+                                                                        <div>
+                                                                            <p className="text-xs font-medium text-gray-600 mb-1">Intervention(s)</p>
+                                                                            <div className="grid grid-cols-2 gap-1">
+                                                                                {INTERVENTION_OPTIONS.map(opt => (
+                                                                                    <label key={opt.key} className="flex items-center gap-1.5 text-xs cursor-pointer">
+                                                                                        <input
+                                                                                            type="checkbox"
+                                                                                            checked={sf.interventions.includes(opt.key)}
+                                                                                            onChange={() => toggleStaffIntervention(moiId, opt.key)}
+                                                                                            className="rounded"
+                                                                                        />
+                                                                                        {opt.label}
+                                                                                    </label>
+                                                                                ))}
+                                                                            </div>
+                                                                        </div>
+                                                                        {/* Other intervention */}
+                                                                        {sf.interventions.includes('other') && (
+                                                                            <div>
+                                                                                <label className="text-xs text-gray-600">Please specify (Other)</label>
+                                                                                <input
+                                                                                    type="text"
+                                                                                    value={sf.other_intervention}
+                                                                                    onChange={e => setStaffMoiField(moiId, 'other_intervention', e.target.value)}
+                                                                                    placeholder="Describe the other intervention…"
+                                                                                    className="w-full text-xs border rounded p-1 mt-0.5"
+                                                                                />
+                                                                            </div>
+                                                                        )}
+                                                                        {/* Training specify */}
+                                                                        {sf.interventions.includes('training') && (
+                                                                            <div>
+                                                                                <label className="text-xs text-gray-600">Training / Seminar topic</label>
+                                                                                <input
+                                                                                    type="text"
+                                                                                    value={sf.training_specify}
+                                                                                    onChange={e => setStaffMoiField(moiId, 'training_specify', e.target.value)}
+                                                                                    placeholder="e.g. Food Safety, GMP…"
+                                                                                    className="w-full text-xs border rounded p-1 mt-0.5"
+                                                                                />
+                                                                            </div>
+                                                                        )}
+                                                                        {/* Proponent fields */}
+                                                                        <div className="grid grid-cols-2 gap-2">
+                                                                            <div>
+                                                                                <label className="text-xs text-gray-600">Proponent Name</label>
+                                                                                <input
+                                                                                    type="text"
+                                                                                    value={sf.proponent_name}
+                                                                                    onChange={e => setStaffMoiField(moiId, 'proponent_name', e.target.value)}
+                                                                                    placeholder="Full name"
+                                                                                    className="w-full text-xs border rounded p-1 mt-0.5"
+                                                                                />
+                                                                            </div>
+                                                                            <div>
+                                                                                <label className="text-xs text-gray-600">Date Signed</label>
+                                                                                <input
+                                                                                    type="date"
+                                                                                    value={sf.proponent_date}
+                                                                                    onChange={e => setStaffMoiField(moiId, 'proponent_date', e.target.value)}
+                                                                                    className="w-full text-xs border rounded p-1 mt-0.5"
+                                                                                />
+                                                                            </div>
+                                                                            <div>
+                                                                                <label className="text-xs text-gray-600">Address</label>
+                                                                                <input
+                                                                                    type="text"
+                                                                                    value={sf.proponent_address}
+                                                                                    onChange={e => setStaffMoiField(moiId, 'proponent_address', e.target.value)}
+                                                                                    placeholder="Business address"
+                                                                                    className="w-full text-xs border rounded p-1 mt-0.5"
+                                                                                />
+                                                                            </div>
+                                                                            <div>
+                                                                                <label className="text-xs text-gray-600">Contact Number</label>
+                                                                                <input
+                                                                                    type="text"
+                                                                                    value={sf.proponent_contact}
+                                                                                    onChange={e => setStaffMoiField(moiId, 'proponent_contact', e.target.value)}
+                                                                                    placeholder="e.g. 09XXXXXXXXX"
+                                                                                    className="w-full text-xs border rounded p-1 mt-0.5"
+                                                                                />
+                                                                            </div>
+                                                                        </div>
+                                                                        {/* Signed file */}
+                                                                        <div>
+                                                                            <label className="text-xs font-medium text-gray-600">Signed MOI Form *</label>
+                                                                            <div className="mt-0.5">
+                                                                                <label className="inline-flex items-center gap-1 cursor-pointer text-xs px-2 py-1 rounded border border-gray-300 bg-white hover:bg-gray-50 font-medium">
+                                                                                    {sf.file ? sf.file.name : 'Choose file…'}
+                                                                                    <input
+                                                                                        type="file"
+                                                                                        accept=".pdf,.jpg,.jpeg,.png"
+                                                                                        className="hidden"
+                                                                                        onChange={e => setStaffMoiField(moiId, 'file', e.target.files?.[0] ?? null)}
+                                                                                    />
+                                                                                </label>
+                                                                            </div>
+                                                                        </div>
+                                                                        {/* Submit */}
+                                                                        <div className="flex gap-2">
+                                                                            <button
+                                                                                onClick={() => handleStaffMoiUpload(moiId)}
+                                                                                disabled={!sf.file || moiUploadingId === moiId}
+                                                                                className="text-xs px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                                                                            >
+                                                                                {moiUploadingId === moiId ? 'Saving…' : 'Save MOI'}
+                                                                            </button>
+                                                                            <button
+                                                                                onClick={() => setStaffMoiFormOpen(prev => ({ ...prev, [moiId]: false }))}
+                                                                                className="text-xs px-3 py-1 rounded bg-gray-200 text-gray-700 hover:bg-gray-300"
+                                                                            >
+                                                                                Cancel
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                );
+                                                            })()}
+                                                            {business.moi.interventions && business.moi.interventions.length > 0 && (
+                                                                <div className="mt-1">
+                                                                    <span className="font-medium text-gray-600">Interventions: </span>
+                                                                    <span className="text-gray-800">{business.moi.interventions.join(', ')}</span>
+                                                                    {business.moi.other_intervention && <span className="text-gray-600"> (Other: {business.moi.other_intervention})</span>}
+                                                                </div>
+                                                            )}
+                                                            {business.moi.proponent_name && (
+                                                                <div className="mt-1 grid grid-cols-2 gap-1 text-xs text-gray-600">
+                                                                    <span><span className="font-medium">Proponent:</span> {business.moi.proponent_name}</span>
+                                                                    {business.moi.proponent_date && <span><span className="font-medium">Date:</span> {business.moi.proponent_date}</span>}
+                                                                    {business.moi.proponent_address && <span><span className="font-medium">Address:</span> {business.moi.proponent_address}</span>}
+                                                                    {business.moi.proponent_contact && <span><span className="font-medium">Contact:</span> {business.moi.proponent_contact}</span>}
+                                                                </div>
+                                                            )}
+                                                            {business.moi.acknowledged_by_name && (
+                                                                <p className="text-xs text-green-700 mt-1">Acknowledged by {business.moi.acknowledged_by_name} on {business.moi.acknowledged_at ? new Date(business.moi.acknowledged_at).toLocaleDateString() : ''}</p>
+                                                            )}
+                                                            {/* Acknowledge button */}
+                                                            {business.moi.status === 'uploaded' && (
+                                                                <button
+                                                                    onClick={() => handleMoiAcknowledge(business.moi!.id)}
+                                                                    disabled={moiAcknowledging === business.moi.id}
+                                                                    className="mt-2 text-xs px-3 py-1 rounded border bg-green-50 text-green-700 border-green-200 hover:bg-green-100 font-medium disabled:opacity-50 disabled:cursor-wait"
+                                                                >
+                                                                    {moiAcknowledging === business.moi.id ? 'Acknowledging…' : 'Acknowledge MOI'}
+                                                                </button>
+                                                            )}
+                                                            {/* TNA Schedule */}
+                                                            {business.moi.tna_schedule ? (
+                                                                <div className="mt-3 p-2 bg-blue-50 rounded border border-blue-100">
+                                                                    <p className="text-xs font-semibold text-blue-700 mb-1">TNA Schedule</p>
+                                                                    <div className="grid grid-cols-2 gap-1 text-xs text-gray-700">
+                                                                        <span><span className="font-medium">Date:</span> {new Date(business.moi.tna_schedule.scheduled_date).toLocaleString()}</span>
+                                                                        <span><span className="font-medium">Location:</span> {business.moi.tna_schedule.location}</span>
+                                                                        {business.moi.tna_schedule.conducted_by_name && <span><span className="font-medium">Conducted by:</span> {business.moi.tna_schedule.conducted_by_name}</span>}
+                                                                        <span><span className="font-medium">Status:</span> {business.moi.tna_schedule.status}</span>
+                                                                    </div>
+                                                                    {business.moi.tna_schedule.notes && <p className="text-xs text-gray-500 mt-1">{business.moi.tna_schedule.notes}</p>}
+                                                                    <button
+                                                                        onClick={() => { setMoiSchedulingId(business.moi!.id); setTnaForm({ scheduled_date: '', location: '', conducted_by: '', notes: '' }); }}
+                                                                        className="mt-1 text-xs text-blue-600 underline hover:no-underline"
+                                                                    >Edit Schedule</button>
+                                                                </div>
+                                                            ) : (
+                                                                business.moi.status === 'acknowledged' && moiSchedulingId !== business.moi.id && (
+                                                                    <button
+                                                                        onClick={() => setMoiSchedulingId(business.moi!.id)}
+                                                                        className="mt-2 text-xs px-3 py-1 rounded border bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 font-medium"
+                                                                    >
+                                                                        Schedule TNA
+                                                                    </button>
+                                                                )
+                                                            )}
+                                                            {/* TNA scheduling form */}
+                                                            {moiSchedulingId === business.moi.id && (
+                                                                <div className="mt-3 p-3 bg-gray-50 rounded border border-gray-200 space-y-2">
+                                                                    <p className="text-xs font-semibold text-gray-700">Schedule TNA Session</p>
+                                                                    <div className="grid grid-cols-2 gap-2">
+                                                                        <div>
+                                                                            <label className="text-xs text-gray-600">Date &amp; Time *</label>
+                                                                            <input type="datetime-local" value={tnaForm.scheduled_date} onChange={e => setTnaForm(f => ({ ...f, scheduled_date: e.target.value }))} className="w-full text-xs border rounded p-1 mt-0.5" />
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="text-xs text-gray-600">Location *</label>
+                                                                            <input type="text" value={tnaForm.location} onChange={e => setTnaForm(f => ({ ...f, location: e.target.value }))} placeholder="e.g. DOST Conference Room" className="w-full text-xs border rounded p-1 mt-0.5" />
+                                                                        </div>
+                                                                    </div>
+                                                                    <div>
+                                                                        <label className="text-xs text-gray-600">Notes</label>
+                                                                        <textarea value={tnaForm.notes} onChange={e => setTnaForm(f => ({ ...f, notes: e.target.value }))} rows={2} className="w-full text-xs border rounded p-1 mt-0.5" placeholder="Optional notes…" />
+                                                                    </div>
+                                                                    <div className="flex gap-2">
+                                                                        <button onClick={() => handleScheduleTna(business.moi!.id)} disabled={moiSubmitting} className="text-xs bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 disabled:opacity-50">
+                                                                            {moiSubmitting ? 'Saving…' : 'Save Schedule'}
+                                                                        </button>
+                                                                        <button onClick={() => setMoiSchedulingId(null)} className="text-xs bg-gray-200 text-gray-700 px-3 py-1 rounded hover:bg-gray-300">Cancel</button>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* Documents Section */}
+                                                <div className="mt-4 pt-4 border-t">
+                                                    <h6 className="text-sm font-semibold text-gray-700 mb-3">
+                                                        Required Documents ({(business.documents ?? []).filter(d => d.status === 'verified').length}/{(business.documents ?? []).length} verified)
+                                                    </h6>
+                                                    {(!business.documents || business.documents.length === 0) ? (
+                                                        <p className="text-sm text-gray-500">No document requirements configured for this organization type.</p>
+                                                    ) : (
+                                                    <div className="space-y-2">
+                                                            {business.documents.map((doc) => (
+                                                                <div key={doc.id} className="bg-white border rounded-lg p-3">
+                                                                    <div className="flex justify-between items-start gap-2 flex-wrap">
+                                                                        <div>
+                                                                            <p className="text-sm font-medium text-gray-800">{doc.document_type_name}</p>
+                                                                            <div className="mt-0.5">{statusBadge(doc.status)}</div>
+                                                                        </div>
+                                                                        <div className="flex gap-2 items-center flex-shrink-0">
+                                                                            {/* Upload / Re-upload */}
+                                                                            <label className={`cursor-pointer text-xs px-2 py-1 rounded border font-medium transition ${uploadingDocId === doc.id ? 'bg-gray-100 text-gray-400 cursor-wait' : 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100'}`}>
+                                                                                {uploadingDocId === doc.id ? 'Uploading…' : doc.status === 'pending' ? 'Upload' : 'Re-upload'}
+                                                                                <input
+                                                                                    type="file"
+                                                                                    className="hidden"
+                                                                                    disabled={uploadingDocId === doc.id}
+                                                                                    onChange={(e) => handleDocUpload(doc.id, e.target.files?.[0])}
+                                                                                />
+                                                                            </label>
+                                                                            {/* Verify */}
+                                                                            {doc.status === 'submitted' && (
+                                                                                <>
+                                                                                    <button
+                                                                                        onClick={() => handleVerify(doc.id)}
+                                                                                        className="text-xs px-2 py-1 rounded border bg-green-50 text-green-700 border-green-200 hover:bg-green-100 font-medium"
+                                                                                    >
+                                                                                        Verify
+                                                                                    </button>
+                                                                                    <button
+                                                                                        onClick={() => { setRejectingDocId(doc.id); setRejectRemarks(''); }}
+                                                                                        className="text-xs px-2 py-1 rounded border bg-red-50 text-red-700 border-red-200 hover:bg-red-100 font-medium"
+                                                                                    >
+                                                                                        Reject
+                                                                                    </button>
+                                                                                </>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+                                                                    {doc.original_filename && (
+                                                                        <p className="text-xs text-gray-500 mt-1">
+                                                                            File:{' '}
+                                                                            <a
+                                                                                href={`/storage/${doc.file_path}`}
+                                                                                target="_blank"
+                                                                                rel="noopener noreferrer"
+                                                                                className="text-blue-600 hover:underline"
+                                                                            >
+                                                                                {doc.original_filename}
+                                                                            </a>
+                                                                            {' · '}
+                                                                            <a
+                                                                                href={`/storage/${doc.file_path}`}
+                                                                                download={doc.original_filename}
+                                                                                className="text-indigo-600 hover:underline"
+                                                                            >
+                                                                                Download
+                                                                            </a>
+                                                                        </p>
+                                                                    )}
+                                                                    {doc.remarks && (
+                                                                        <p className="text-xs text-red-600 mt-1">Remarks: {doc.remarks}</p>
+                                                                    )}
+                                                                    {doc.verified_by_name && doc.verified_at && (
+                                                                        <p className="text-xs text-gray-500 mt-1">
+                                                                            {doc.status === 'verified' ? 'Verified' : 'Reviewed'} by {doc.verified_by_name} on {doc.verified_at}
+                                                                        </p>
+                                                                    )}
+                                                                    {/* Inline reject form */}
+                                                                    {rejectingDocId === doc.id && (
+                                                                        <div className="mt-2 p-2 bg-red-50 rounded border border-red-200">
+                                                                            <textarea
+                                                                                value={rejectRemarks}
+                                                                                onChange={(e) => setRejectRemarks(e.target.value)}
+                                                                                placeholder="Enter rejection reason…"
+                                                                                className="w-full text-sm border border-red-200 rounded p-2 focus:ring-red-300 focus:border-red-400"
+                                                                                rows={2}
+                                                                            />
+                                                                            <div className="flex gap-2 mt-1">
+                                                                                <button
+                                                                                    onClick={() => handleReject(doc.id)}
+                                                                                    className="text-xs bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
+                                                                                >
+                                                                                    Confirm Reject
+                                                                                </button>
+                                                                                <button
+                                                                                    onClick={() => { setRejectingDocId(null); setRejectRemarks(''); }}
+                                                                                    className="text-xs bg-gray-200 text-gray-700 px-3 py-1 rounded hover:bg-gray-300"
+                                                                                >
+                                                                                    Cancel
+                                                                                </button>
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
+                                                                    {/* Audit Trail */}
+                                                                    {doc.audit_logs && doc.audit_logs.length > 0 && (
+                                                                        <div className="mt-2 pt-2 border-t border-gray-100">
+                                                                            <p className="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Audit Trail</p>
+                                                                            <div className="space-y-1">
+                                                                                {doc.audit_logs.map((log, i) => (
+                                                                                    <div key={i} className="flex items-start gap-2 text-xs text-gray-600">
+                                                                                        <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-gray-400 flex-shrink-0 mt-1.5"></span>
+                                                                                        <span>
+                                                                                            <span className="font-medium">{log.created_at}</span>
+                                                                                            {' — '}
+                                                                                            <span className={`font-semibold ${
+                                                                                                log.action === 'verified' ? 'text-green-700' :
+                                                                                                log.action === 'rejected' ? 'text-red-700' :
+                                                                                                'text-blue-700'
+                                                                                            }`}>
+                                                                                                {log.action === 're_uploaded' ? 'Re-uploaded' : log.action.charAt(0).toUpperCase() + log.action.slice(1)}
+                                                                                            </span>
+                                                                                            {log.performed_by_name && <span> by {log.performed_by_name}</span>}
+                                                                                            {log.original_filename && <span className="text-gray-500"> ({log.original_filename})</span>}
+                                                                                            {log.remarks && <span className="text-gray-500"> — "{log.remarks}"</span>}
+                                                                                        </span>
+                                                                                    </div>
+                                                                                ))}
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+
                                             </div>
                                         )
                                     )}

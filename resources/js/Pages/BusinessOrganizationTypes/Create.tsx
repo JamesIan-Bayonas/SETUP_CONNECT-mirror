@@ -1,56 +1,61 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { FormEventHandler, useState } from "react";
 import { Head, Link, useForm, router } from "@inertiajs/react";
+import { DocumentType } from "@/types";
 
 interface BusinessOrganizationTypeForm {
     name: string;
 }
 
-interface BusinessOrganizationTypeRequirementForm {
+interface RequirementForm {
     id: number;
-    description: string;
+    document_type_id: number | null;
     requireAttachment: boolean;
 }
 
-export default function Create() {
+interface Props {
+    documentTypes: DocumentType[];
+}
+
+export default function Create({ documentTypes }: Props) {
     const { data, setData, processing, errors } = useForm<BusinessOrganizationTypeForm>({
         name: "",
     });
 
-    const [requirements, setRequirements] = useState<BusinessOrganizationTypeRequirementForm[]>([]);
+    const [requirements, setRequirements] = useState<RequirementForm[]>([]);
 
     const addRequirement = () => {
         setRequirements((prev) => [
             ...prev,
-            { 
+            {
                 id: Date.now(),
-                description: "", 
-                requireAttachment: false 
+                document_type_id: null,
+                requireAttachment: false,
             },
         ]);
     };
 
-    const updateRequirementDescription = (index: number, value: string) => {
-        const updated = [...requirements];
-        updated[index] = { ...updated[index], description: value };
-        setRequirements(updated);
+    const updateDocumentType = (index: number, value: number | null) => {
+        setRequirements((prev) => {
+            const updated = [...prev];
+            updated[index] = { ...updated[index], document_type_id: value };
+            return updated;
+        });
     };
 
     const updateRequireAttachment = (index: number) => {
-    setRequirements(prev => {
-        const updated = [...prev];
-        updated[index] = {
-            ...updated[index],
-            requireAttachment: !updated[index].requireAttachment,
-        };
-        return updated;
-    });
-};
+        setRequirements((prev) => {
+            const updated = [...prev];
+            updated[index] = {
+                ...updated[index],
+                requireAttachment: !updated[index].requireAttachment,
+            };
+            return updated;
+        });
+    };
 
     const removeRequirement = (index: number) => {
-        const updated = [...requirements];
-        updated.splice(index, 1);
-        setRequirements(updated);
+        setRequirements((prev) => prev.filter((_, i) => i !== index));
     };
 
     const submit: FormEventHandler = (e) => {
@@ -60,13 +65,19 @@ export default function Create() {
         formData.append("name", data.name);
 
         requirements.forEach((req, index) => {
-            formData.append(`requirements[${index}][description]`, req.description);
-            formData.append(`requirements[${index}][require_attachment]`, req.requireAttachment ? "1" : "0");
+            formData.append(
+                `requirements[${index}][document_type_id]`,
+                req.document_type_id?.toString() ?? ""
+            );
+            formData.append(
+                `requirements[${index}][require_attachment]`,
+                req.requireAttachment ? "1" : "0"
+            );
         });
 
         router.post("/org-types", formData, {
             onSuccess: () => router.visit("/org-types"),
-            onError: (errors) => console.error(errors),
+            onError: (errs) => console.error(errs),
         });
     };
 
@@ -113,7 +124,7 @@ export default function Create() {
 
                                 {/* Requirements List */}
                                 <div>
-                                    <div className="flex justify-between items-center">
+                                    <div className="flex justify-between items-center mb-2">
                                         <h3 className="text-lg text-gray-700">Requirements (Optional)</h3>
                                         <button
                                             type="button"
@@ -124,6 +135,13 @@ export default function Create() {
                                         </button>
                                     </div>
 
+                                    {documentTypes.length === 0 && (
+                                        <p className="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded p-3 mb-2">
+                                            No active document types available. Please create document
+                                            types first before adding requirements.
+                                        </p>
+                                    )}
+
                                     {requirements.length === 0 && (
                                         <p className="text-sm text-gray-500 mt-2">
                                             No requirements added.
@@ -132,17 +150,30 @@ export default function Create() {
 
                                     {requirements.map((req, index) => (
                                         <div
-                                            key={index}
+                                            key={req.id}
                                             className="flex flex-col gap-2 mt-3 p-3 border rounded-md"
                                         >
-                                            {/* Description */}
-                                            <input
-                                                type="text"
-                                                placeholder="Requirement Description"
-                                                value={req.description}
-                                                onChange={(e) => updateRequirementDescription(index, e.target.value)}
+                                            {/* Document Type Dropdown */}
+                                            <select
+                                                value={req.document_type_id ?? ""}
+                                                onChange={(e) =>
+                                                    updateDocumentType(
+                                                        index,
+                                                        e.target.value ? Number(e.target.value) : null
+                                                    )
+                                                }
                                                 className="p-2 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                                            />
+                                                required
+                                            >
+                                                <option value="" disabled>
+                                                    — Select a document type —
+                                                </option>
+                                                {documentTypes.map((dt) => (
+                                                    <option key={dt.id} value={dt.id}>
+                                                        {dt.name}
+                                                    </option>
+                                                ))}
+                                            </select>
 
                                             {/* Require attachment checkbox */}
                                             <div className="flex items-center justify-between">
@@ -156,7 +187,6 @@ export default function Create() {
                                                     Attachment required
                                                 </label>
 
-                                                {/* Delete button */}
                                                 <button
                                                     type="button"
                                                     onClick={() => removeRequirement(index)}
@@ -189,7 +219,6 @@ export default function Create() {
                                         </div>
                                     ))}
                                 </div>
-
 
                                 {/* Submit Buttons */}
                                 <div className="flex items-center justify-end space-x-4">
