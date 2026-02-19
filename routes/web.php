@@ -6,7 +6,10 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerApprovalController;
 use App\Http\Controllers\SetUpCustomerController;
+use App\Http\Controllers\CustomerBusinessDocumentController;
+use App\Http\Controllers\ManifestationOfIntentController;
 use App\Http\Controllers\Web\BusinessOrganizationTypeController;
+use App\Http\Controllers\Web\DocumentTypeController;
 use App\Events\CustomerApplicationApproved;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -78,6 +81,11 @@ Route::middleware('auth')->group(function () {
     Route::middleware('can:manage-org-types')->group(function () {
         Route::resource('org-types', BusinessOrganizationTypeController::class);
     });
+
+    // Document Type Management (admin and psto_staff)
+    Route::middleware('can:manage-document-types')->group(function () {
+        Route::resource('document-types', DocumentTypeController::class)->except(['show']);
+    });
 });
 
 
@@ -109,6 +117,28 @@ Route::middleware('auth')->group(function () {
         ->name('setupcustomers.toggle');
     Route::post('/setupcustomer', [SetUpCustomerController::class, 'store'])
         ->name('customer.add');
+
+    // Customer Business Document Management
+    Route::post('/customer-documents/{document}/upload', [CustomerBusinessDocumentController::class, 'upload'])
+        ->name('customer-documents.upload');
+    Route::post('/customer-documents/{document}/verify', [CustomerBusinessDocumentController::class, 'verify'])
+        ->name('customer-documents.verify');
+    Route::post('/customer-documents/{document}/reject', [CustomerBusinessDocumentController::class, 'reject'])
+        ->name('customer-documents.reject');
+    Route::get('/my-documents', [CustomerBusinessDocumentController::class, 'myDocuments'])
+        ->name('my-documents');
+
+    // Manifestation of Intent
+    Route::get('/my-moi', [ManifestationOfIntentController::class, 'myMoi'])
+        ->name('my-moi');
+    Route::post('/moi/{moi}/upload', [ManifestationOfIntentController::class, 'upload'])
+        ->name('moi.upload');
+    Route::post('/moi/{moi}/acknowledge', [ManifestationOfIntentController::class, 'acknowledge'])
+        ->name('moi.acknowledge');
+    Route::post('/moi/{moi}/schedule-tna', [ManifestationOfIntentController::class, 'scheduleTna'])
+        ->name('moi.schedule-tna');
+    Route::get('/moi/staff-list', [ManifestationOfIntentController::class, 'staffList'])
+        ->name('moi.staff-list');
 });
 
 // Message Route

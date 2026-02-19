@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class SetUpCustomerBusiness extends Model
 {
@@ -48,5 +49,21 @@ class SetUpCustomerBusiness extends Model
             BusinessOrganizationType::class, 
             'business_organization_type_id'
         );
+    }
+
+    /**
+     * Get the document requirement slots for this business.
+     */
+    public function documents(): HasMany
+    {
+        return $this->hasMany(\App\Models\CustomerBusinessDocument::class, 'setup_customer_business_id');
+    }
+
+    /**
+     * Get the Manifestation of Intent for this business.
+     */
+    public function moi()
+    {
+        return $this->hasOne(\App\Models\ManifestationOfIntent::class, 'setup_customer_business_id');
     }
 }

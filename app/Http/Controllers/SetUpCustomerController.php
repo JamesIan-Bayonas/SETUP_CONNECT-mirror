@@ -7,6 +7,8 @@ use App\Models\Customer;
 use App\Models\SetUpCustomer;
 use App\Models\SetUpCustomerBusiness;
 use App\Models\User;
+use App\Services\CustomerBusinessDocumentService;
+use App\Services\ManifestationOfIntentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -19,6 +21,17 @@ use Inertia\Inertia;
 
 class SetUpCustomerController extends Controller
 {
+    protected CustomerBusinessDocumentService $documentService;
+    protected ManifestationOfIntentService $moiService;
+
+    public function __construct(
+        CustomerBusinessDocumentService $documentService,
+        ManifestationOfIntentService $moiService
+    ) {
+        $this->documentService = $documentService;
+        $this->moiService = $moiService;
+    }
+
     /**
      * Display a listing of setup customers.
      */
@@ -49,8 +62,17 @@ class SetUpCustomerController extends Controller
      */
     public function show($id)
     {
-        $customer = SetUpCustomer::with(['user', 'businesses.orgType', 'customerApplication'])
-            ->findOrFail($id);
+        $customer = SetUpCustomer::with([
+            'user',
+            'businesses.orgType',
+            'businesses.documents.requirement.documentType',
+            'businesses.documents.uploadedByUser',
+            'businesses.documents.verifiedByUser',
+            'businesses.documents.auditLogs',
+            'businesses.moi.tnaSchedule.conductedByUser',
+            'businesses.moi.acknowledgedByUser',
+            'customerApplication',
+        ])->findOrFail($id);
 
         return response()->json([
             'id' => $customer->id,
@@ -83,6 +105,12 @@ class SetUpCustomerController extends Controller
                     'website' => $business->website,
                     'is_active' => $business->is_active,
                     'created_at' => $business->created_at->format('Y-m-d'),
+                    'documents' => $business->documents
+                        ->map(fn($doc) => $this->documentService->format($doc))
+                        ->values(),
+                    'moi' => $business->moi
+                        ? $this->moiService->format($business->moi)
+                        : null,
                 ];
             }),
         ]);
@@ -145,7 +173,7 @@ class SetUpCustomerController extends Controller
                 'name_of_agency_firm' => 'required|string|max:255',
                 'business_of_the_firm' => 'required|string',
                 'product_line' => 'required|string',
-                'type_of_organization' => 'required|string|max:100',
+                'business_organization_type_id' => 'required|exists:business_organization_types,id',
                 'date_established' => 'nullable|date',
                 'name_of_head_of_agency_firm' => 'required|string|max:255',
                 'business_address' => 'required|string',
@@ -193,7 +221,7 @@ class SetUpCustomerController extends Controller
                     'name_of_agency_firm' => $validated['name_of_agency_firm'],
                     'business_of_the_firm' => $validated['business_of_the_firm'],
                     'product_line' => $validated['product_line'],
-                    'type_of_organization' => $validated['type_of_organization'],
+                    'business_organization_type_id' => $validated['business_organization_type_id'],
                     'date_established' => $validated['date_established'] ?? null,
                     'name_of_head_of_agency_firm' => $validated['name_of_head_of_agency_firm'],
                     'business_address' => $validated['business_address'],
@@ -208,7 +236,7 @@ class SetUpCustomerController extends Controller
                     'name_of_agency_firm' => $validated['name_of_agency_firm'],
                     'business_of_the_firm' => $validated['business_of_the_firm'],
                     'product_line' => $validated['product_line'],
-                    'type_of_organization' => $validated['type_of_organization'],
+                    'business_organization_type_id' => $validated['business_organization_type_id'],
                     'date_established' => $validated['date_established'] ?? null,
                     'name_of_head_of_agency_firm' => $validated['name_of_head_of_agency_firm'],
                     'business_address' => $validated['business_address'],
@@ -218,6 +246,15 @@ class SetUpCustomerController extends Controller
                     'is_active' => true,
                 ]);
             }
+
+            // Auto-generate pending document slots for each requirement
+            $this->documentService->createPendingForBusiness(
+                $business->id,
+                $validated['business_organization_type_id']
+            );
+
+            // Auto-create a pending MOI record for this business
+            $this->moiService->createForBusiness($setupCustomer->id, $business->id);
 
             // Prepare applicant name (neat formatting)
             $applicantName = trim("{$validated['first_name']} {$validated['middle_name']} {$validated['last_name']} {$validated['suffix']}");
