@@ -68,7 +68,9 @@ export default function Show({ orgType }: Props) {
                                     >
                                         <div className="flex justify-between items-center">
                                             <p className="text-md font-semibold text-gray-800">
-                                                {req.description}
+                                                {req.document_type?.name ?? (
+                                                    <span className="text-gray-400 italic">Unknown document type</span>
+                                                )}
                                             </p>
                                             <span
                                                 className={

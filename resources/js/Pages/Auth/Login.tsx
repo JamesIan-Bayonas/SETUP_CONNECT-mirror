@@ -32,7 +32,7 @@ export default function Login() {
                                 <img
                                     src="/images/dost_logo.png"
                                     alt="DOST Logo"
-                                    className="h-16 w-16"
+                                    className="h-40 w-40"
                                 />
                             </div>
                         </div>
@@ -206,6 +206,13 @@ export default function Login() {
                         <p className="text-xs text-gray-500">
                             Developed and maintained by
                         </p>
+                        <div className="flex justify-center">
+                            <img
+                                src="/images/ccs_logo.png"
+                                alt="CCS Logo"
+                                className="h-32 w-32"
+                            />
+                        </div>
                         <p className="text-sm font-semibold text-gray-700">
                             DMC College Foundation
                         </p>
