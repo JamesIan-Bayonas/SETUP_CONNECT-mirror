@@ -1,4 +1,6 @@
 *
 !private/
 !public/
+!app-templates/
+!app-templates/**
 !.gitignore
