@@ -849,6 +849,54 @@ export default function AuthenticatedLayout({ header, children }: PropsWithChild
                   </div>
                 )}
               </div>
+
+              {/* Messages Section - Mobile (List of Messages) */}
+              {(user.user_type === 'admin' || user.user_type === 'psto_staff') && (
+                <div className="space-y-1">
+                  {/* Message Group Header */}
+                  <button
+                    onClick={() => setMessageOpen(!messageOpen)}
+                    className="group w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-50 hover:text-gray-900"
+                  >
+                    <div className="flex items-center">
+                      <svg className="flex-shrink-0 h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l9 6 9-6M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                      Messages
+                    </div>
+                    <svg
+                      className={`h-5 w-5 text-gray-400 transform transition-transform ${
+                        messageOpen ? 'rotate-90' : ''
+                      }`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+
+                  {/* Message Sub-items */}
+                  {messageOpen && (
+                    <div className="pl-3 space-y-1">
+                      <Link
+                        href="/messages"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={`w-full group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                          isActive('/messages')
+                            ? 'bg-indigo-50 text-indigo-600'
+                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                        }`}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0 h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3l18 9-18 9 4-9-4-9z" />
+                        </svg>
+                        Sent Message
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              )}
             </nav>
           </aside>
         </>
