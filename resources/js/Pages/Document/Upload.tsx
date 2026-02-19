@@ -1,11 +1,21 @@
 import { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 
-
 export default function Upload() {
-const [file, setFile] = useState<File | null>(null);
-const [isDragging, setIsDragging] = useState(false);
+    const [file, setFile] = useState<File | null>(null);
+    const [isDragging, setIsDragging] = useState(false);
+    const [isUploadComplete, setIsUploadComplete] = useState(false);
+    const [documentId, setDocumentId] = useState('');
+    const [category, setCategory] = useState('billing');
 
+    const handleUploadClick = () => {
+        setDocumentId(`DOC-${Date.now()}`);
+        setIsUploadComplete(true);
+    };
+
+    const handleCloseUploadComplete = () => {
+        setIsUploadComplete(false);
+    };
 
     return (
         <AuthenticatedLayout>
@@ -153,11 +163,15 @@ const [isDragging, setIsDragging] = useState(false);
                                         Category{" "}
                                         <span className="text-red-500">*</span>
                                     </label>
-                                    <select className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100">
-                                        <option>Billing</option>
-                                        <option>Legal</option>
-                                        <option>HR</option>
-                                        <option>Other</option>
+                                    <select
+                                        value={category}
+                                        onChange={(e) => setCategory(e.target.value)}
+                                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                                    >
+                                        <option value="billing">Billing</option>
+                                        <option value="legal">Legal</option>
+                                        <option value="hr">HR</option>
+                                        <option value="other">Other</option>
                                     </select>
                                 </div>
                                 <div>
@@ -189,10 +203,22 @@ const [isDragging, setIsDragging] = useState(false);
 
                     {/* Card Footer */}
                     <div className="flex items-center justify-end gap-2 border-t border-slate-100 px-6 py-4">
-                        <button className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50">
+                        <button
+                            type="button"
+                            className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+                            onClick={() => {
+                                setFile(null);
+                                setCategory('billing');
+                            }}
+                        >
                             Cancel
                         </button>
-                        <button className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700">
+
+                        <button
+                            type="button"
+                            onClick={handleUploadClick}
+                            className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+                        >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 className="h-4 w-4"
@@ -212,6 +238,56 @@ const [isDragging, setIsDragging] = useState(false);
                     </div>
                 </div>
             </div>
+
+            {isUploadComplete && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+                    <div className="relative w-full max-w-xl rounded-2xl bg-white p-6 shadow-2xl">
+                        <button
+                            type="button"
+                            onClick={handleCloseUploadComplete}
+                            className="absolute right-4 top-3 text-xl leading-none text-slate-500 hover:text-slate-700"
+                        >
+                            ×
+                        </button>
+
+                        <div className="mt-6 flex justify-center">
+                            <div className="flex h-16 w-16 items-center justify-center rounded-full border-4 border-emerald-500">
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="h-10 w-10 text-emerald-500"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="3"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                >
+                                    <polyline points="20 6 9 17 4 12" />
+                                </svg>
+                            </div>
+                        </div>
+
+                        <h3 className="mt-5 text-center text-3xl font-semibold text-slate-900">Upload Complete!</h3>
+
+                        <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4 text-slate-700">
+                            <p className="text-base"><span className="font-semibold">Document ID:</span> {documentId}</p>
+                            <p className="mt-1 text-base"><span className="font-semibold">File Name:</span> {file?.name ?? 'N/A'}</p>
+                            <p className="mt-1 text-base"><span className="font-semibold">Category:</span> {category}</p>
+                        
+                        </div>
+
+                        <div className="mt-6 flex justify-end">
+                            <button
+                                type="button"
+                                onClick={handleCloseUploadComplete}
+                                className="rounded-lg bg-slate-900 px-5 py-2 text-base font-medium text-white hover:bg-slate-800"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </AuthenticatedLayout>
     );
 }
