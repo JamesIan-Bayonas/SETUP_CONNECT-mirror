@@ -1,6 +1,12 @@
+import { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 
+
 export default function Upload() {
+const [file, setFile] = useState<File | null>(null);
+const [isDragging, setIsDragging] = useState(false);
+
+
     return (
         <AuthenticatedLayout>
             <div className="p-6">
@@ -37,40 +43,108 @@ export default function Upload() {
                     {/* Card Body */}
                     <div className="px-6 py-5">
                         <form className="space-y-5">
-                            {/* File Upload */}
-                            <div>
-                                <label className="mb-1.5 block text-sm font-medium text-slate-700">
-                                    Select File{" "}
-                                    <span className="text-red-500">*</span>
-                                </label>
-                                <label className="group flex w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 py-7 transition hover:border-blue-400 hover:bg-blue-50">
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm group-hover:shadow-blue-100">
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            className="h-5 w-5 text-slate-400 group-hover:text-blue-500"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            strokeWidth="2"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                        >
-                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                            <polyline points="17 8 12 3 7 8" />
-                                            <line x1="12" y1="3" x2="12" y2="15" />
-                                        </svg>
-                                    </div>
-                                    <div className="text-center">
-                                        <p className="text-sm font-medium text-slate-600 group-hover:text-blue-600">
-                                            Click to browse or drag &amp; drop
-                                        </p>
-                                        <p className="mt-0.5 text-xs text-slate-400">
-                                            PDF, DOCX, XLSX, DOC, XLS &mdash; Max 20 MB
-                                        </p>
-                                    </div>
-                                    <input type="file" className="hidden" />
-                                </label>
+                    {/* File Upload */}
+                    <div>
+                    <label className="mb-1.5 block text-sm font-medium text-slate-700">
+                        Select File{" "}
+                        <span className="text-red-500">*</span>
+                    </label>
+
+                    {/* If no file selected → show upload box */}
+                    {!file && (
+                        <div
+                        onDragOver={(e) => {
+                            e.preventDefault();
+                            setIsDragging(true);
+                        }}
+                        onDragLeave={() => setIsDragging(false)}
+                        onDrop={(e) => {
+                            e.preventDefault();
+                            setIsDragging(false);
+
+                            const droppedFile = e.dataTransfer.files[0];
+                            if (droppedFile) {
+                            setFile(droppedFile);
+                            }
+                        }}
+                        className={`group flex w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed py-7 transition 
+                            ${
+                            isDragging
+                                ? "border-blue-500 bg-blue-50"
+                                : "border-slate-200 bg-slate-50 hover:border-blue-400 hover:bg-blue-50"
+                            }`}
+                        >
+                        <label className="flex w-full cursor-pointer flex-col items-center gap-2">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-5 w-5 text-slate-400"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            >
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                <polyline points="17 8 12 3 7 8" />
+                                <line x1="12" y1="3" x2="12" y2="15" />
+                            </svg>
                             </div>
+
+                            <div className="text-center">
+                            <p className="text-sm font-medium text-slate-600">
+                                Click to browse or drag & drop
+                            </p>
+                            <p className="mt-0.5 text-xs text-slate-400">
+                                PDF, DOCX, XLSX, DOC, XLS — Max 20 MB
+                            </p>
+                            </div>
+
+                            <input
+                            type="file"
+                            className="hidden"
+                            onChange={(e) => {
+                                const selectedFile = e.target.files?.[0];
+                                if (selectedFile) {
+                                setFile(selectedFile);
+                                }
+                            }}
+                            />
+                        </label>
+                        </div>
+                    )}
+
+                    {/* If file selected → show file preview */}
+                    {file && (
+                        <div className="mt-4 relative flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+                        {/* Remove Button */}
+                        <button
+                            type="button"
+                            onClick={() => setFile(null)}
+                            className="absolute right-3 top-3 text-slate-400 hover:text-red-500"
+                        >
+                            ✕
+                        </button>
+
+                        {/* File Icon */}
+                        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-50 text-blue-600 text-xl">
+                            {(() => {
+                            const extension = file.name.split(".").pop()?.toLowerCase();
+                            if (extension === "pdf") return "📄";
+                            if (extension === "doc" || extension === "docx") return "📝";
+                            if (extension === "xls" || extension === "xlsx") return "📊";
+                            return "📁";
+                            })()}
+                        </div>
+
+                        {/* File Name */}
+                        <div className="text-sm font-medium text-slate-700">
+                            {file.name}
+                        </div>
+                        </div>
+                    )}
+                    </div>
 
                             {/* Two-column row: Category + Audience */}
                             <div className="grid grid-cols-2 gap-4">
