@@ -32,6 +32,10 @@ class ManifestationOfIntentMail extends Mailable
                 'as' => 'Manifestation_of_Intent.pdf',
                 'mime' => 'application/pdf',
             ]);
+        } else {
+            \Log::warning('ManifestationOfIntentMail: MOI PDF template not found — email sent WITHOUT attachment.', [
+                'expected_path' => $pdfPath,
+            ]);
         }
 
         return $mail;
