@@ -18,10 +18,12 @@ const CreateMessageModal: React.FC<CreateMessageModalProps> = ({ isOpen, onClose
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
   const [attachment, setAttachment] = useState<File | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  
-  //ALBERT ADDED LOADING 
   const [loading, setLoading] = useState(false);
+  
+  //  ADDED ERROR STATE
+  const [inlineError, setInlineError] = useState<string | null>(null);
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -29,9 +31,16 @@ const CreateMessageModal: React.FC<CreateMessageModalProps> = ({ isOpen, onClose
     }
   };
 
-  // ADDED SUBMIT LOGIC 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setInlineError(null);
+
+    // ADDED VALIDATION CHECK
+    if (!recipientId || !subject || !body) {
+      setInlineError("Please fill in all required fields.");
+      return;
+    }
+
     setLoading(true);
 
     const formData = new FormData();
@@ -52,23 +61,35 @@ const CreateMessageModal: React.FC<CreateMessageModalProps> = ({ isOpen, onClose
       window.dispatchEvent(
         new CustomEvent("message:sent", { detail: { message: "Message sent successfully!" } })
       );
-      // We will add reset logic in the next phase
+      
+      resetAndClose();
     } catch (err: any) {
-        console.warn("Backend error, simulating UI success.");
+        console.warn("Backend error (expected if route missing), simulating UI success.");
+        resetAndClose();
     } finally {
       setLoading(false);
     }
   };
+
+  // ADDED RESET LOGIC
+  const resetAndClose = () => {
+      onClose();
+      setRecipientId("");
+      setSubject("");
+      setBody("");
+      setAttachment(null);
+  }
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed bottom-0 right-4 sm:right-10 z-50 w-full sm:w-[500px] flex flex-col pointer-events-none">
       <div className="pointer-events-auto bg-white rounded-t-xl shadow-[0_0_20px_rgba(0,0,0,0.15)] border border-gray-300 flex flex-col max-h-[80vh]">
+        
         <div className="bg-blue-900 px-4 py-3 rounded-t-xl flex justify-between items-center cursor-pointer">
           <h3 className="text-sm font-bold text-white tracking-wide">New Message</h3>
           <div className="flex items-center gap-2">
-            <button onClick={onClose} className="text-blue-200 hover:text-white transition-colors">
+            <button onClick={resetAndClose} className="text-blue-200 hover:text-white transition-colors">
                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -77,7 +98,14 @@ const CreateMessageModal: React.FC<CreateMessageModalProps> = ({ isOpen, onClose
         </div>
 
         <div className="p-4 overflow-y-auto bg-white flex-1">
-          {/* CONNECTED THE FORM TO ONSUBMIT */}
+          {/* ADDED ERROR UI*/}
+          {inlineError && (
+            <div className="mb-4 p-2 rounded-md bg-red-50 border border-red-100 text-red-600 text-sm flex items-center">
+               <svg className="h-4 w-4 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" /></svg>
+               {inlineError}
+            </div>
+          )}
+
           <form id="message-form" onSubmit={handleSubmit} className="space-y-4">
              <div className="relative">
                <input
@@ -93,6 +121,7 @@ const CreateMessageModal: React.FC<CreateMessageModalProps> = ({ isOpen, onClose
                 ))}
               </datalist>
             </div>
+
             <div>
               <input
                 value={subject}
@@ -101,6 +130,7 @@ const CreateMessageModal: React.FC<CreateMessageModalProps> = ({ isOpen, onClose
                 className="w-full border-0 border-b border-gray-200 focus:border-blue-500 focus:ring-0 px-0 py-2 text-sm placeholder-gray-500 font-medium"
               />
             </div>
+
             <div>
               <textarea
                 rows={8}
@@ -110,13 +140,13 @@ const CreateMessageModal: React.FC<CreateMessageModalProps> = ({ isOpen, onClose
                 placeholder="Type your message..."
               />
             </div>
+
             <input type='file' ref={fileInputRef} className="hidden" onChange={handleFileChange} />
           </form>
         </div>
 
         <div className="px-4 py-3 bg-white border-t border-gray-100 flex items-center justify-between">
           <div className="flex items-center gap-2">
-              {/* CONNECTED THE BUTTON TO LOADING STATE */}
               <button
                 type="submit"
                 form="message-form"
@@ -125,6 +155,7 @@ const CreateMessageModal: React.FC<CreateMessageModalProps> = ({ isOpen, onClose
               >
                 {loading ? "Sending..." : "Send"}
               </button>
+              
               <button type="button" onClick={() => fileInputRef.current?.click()} className="p-2 text-gray-500 hover:bg-gray-100 rounded-full">
                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 transform rotate-45">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" />
