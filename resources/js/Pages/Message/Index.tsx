@@ -1,6 +1,9 @@
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'; 
 import { Head } from '@inertiajs/react';
+// Import your team's modal
+// Note: We go up one level (..) to 'Pages' then into 'Messages' where your modal lives
+import CreateMessageModal from '../Messages/CreateMessageModal';
 
 interface Message {
   id: number;
@@ -9,8 +12,6 @@ interface Message {
   date: string;
   isRead: boolean;
 }
-
-
 
 const FAKE_MESSAGES: Message[] = [
   { id: 1, recipient: "Sarah Johnson", subject: "Permit Application Inquiry – Follow-up on submitted documents", date: "2024-01-15 10:30 AM", isRead: true },
@@ -24,14 +25,15 @@ const FAKE_MESSAGES: Message[] = [
   { id: 9, recipient: "Jeer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
   { id: 10, recipient: "Jeer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: false },
   { id: 11, recipient: "Jeer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: false },
-  
 ];
-
 
 export default function SetupMessageUI() {
   const [messages] = useState<Message[]>(FAKE_MESSAGES);
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState<"all" | "read" | "unread">("all");
+  
+  // --- ADDED: State to control your Modal ---
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const trimmedSearch = searchTerm.trim().toLowerCase();
 
@@ -70,8 +72,8 @@ export default function SetupMessageUI() {
   };
 
   useEffect(() => {
-  setCurrentPage(1);
-}, [filter, searchTerm]);
+    setCurrentPage(1);
+  }, [filter, searchTerm]);
 
   // Pagination settings
   const itemsPerPage = 10;
@@ -84,13 +86,16 @@ export default function SetupMessageUI() {
     currentPage * itemsPerPage
   );
 
-
-return (
+  return (
     <AuthenticatedLayout
         header={
             <div className="flex justify-between items-center">
                 <h2 className="font-semibold text-xl text-gray-800 leading-tight">Messages</h2>
-                <button className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg shadow-sm transition">
+                {/* --- MODIFIED: Added onClick to trigger your modal --- */}
+                <button 
+                    onClick={() => setIsModalOpen(true)}
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg shadow-sm transition"
+                >
                     + New Message
                 </button>
             </div>
@@ -205,6 +210,13 @@ return (
           </div>
         </div>
       </div>
+
+      {/* --- ADDED: Your Modal Component --- */}
+      <CreateMessageModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+      />
+
     </AuthenticatedLayout>
   );
 }
