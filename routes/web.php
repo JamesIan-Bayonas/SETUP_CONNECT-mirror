@@ -199,6 +199,6 @@ HTML);
 }
 
 // Document view route
-Route::get('/document/view', function () {
-    return Inertia::render('Document/View');
+Route::get('/Files/view', function () {
+    return Inertia::render('Files/View');
 });
