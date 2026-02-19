@@ -98,6 +98,14 @@ class CreateSetUpCustomerListener
             'setup_customer_id' => $setupCustomer->id,
         ]);
 
+        // Auto-generate pending document slots for each requirement of the org type
+        app(\App\Services\CustomerBusinessDocumentService::class)
+            ->createPendingForBusiness($setupBusiness->id, $application->business_organization_type_id);
+
+        // Auto-create a pending MOI record for this business
+        app(\App\Services\ManifestationOfIntentService::class)
+            ->createForBusiness($setupCustomer->id, $setupBusiness->id);
+
         \Log::info('CreateSetUpCustomerListener: Completed successfully');
     }
 }
