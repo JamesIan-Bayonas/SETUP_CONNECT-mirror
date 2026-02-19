@@ -18,6 +18,17 @@ const CreateMessageModal: React.FC<CreateMessageModalProps> = ({ isOpen, onClose
   const [recipientId, setRecipientId] = useState("");
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
+  
+  // CALAGO ADDED ATTACHMENT STATE 
+  const [attachment, setAttachment] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // ADD HANDLER 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setAttachment(e.target.files[0]);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -26,7 +37,6 @@ const CreateMessageModal: React.FC<CreateMessageModalProps> = ({ isOpen, onClose
       <div className="bg-white p-6 rounded shadow-lg w-1/2">
         <h2 className="text-xl mb-4">New Message</h2>
         
-        {/* --- BAGUNBON ADDED FORM HERE --- */}
         <form id="message-form" className="space-y-4">
           <input 
             value={recipientId} 
@@ -46,6 +56,21 @@ const CreateMessageModal: React.FC<CreateMessageModalProps> = ({ isOpen, onClose
             placeholder="Type your message..." 
             className="w-full border p-2 rounded"
           />
+
+          {/*  FILE INPUTS */}
+          <div>
+            <button type="button" onClick={() => fileInputRef.current?.click()}>
+                Attach File
+            </button>
+            <span className="ml-2">{attachment ? attachment.name : "No file selected"}</span>
+            <input 
+                type='file' 
+                ref={fileInputRef}
+                className="hidden" 
+                onChange={handleFileChange} 
+             />
+          </div>
+
           <button type="button" onClick={onClose}>Close</button>
         </form>
 
