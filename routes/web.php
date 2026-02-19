@@ -152,6 +152,13 @@ Route::middleware('auth')->group(function () {
     })->name('messages');
 });
 
+// Document Route
+Route::middleware('auth')->group(function () {
+    Route::get('/upload', function () {
+        return Inertia::render('Document/Upload');
+    })->name('document.upload');
+});
+
 // Local dev route to test approval email dispatch
 if (app()->environment('local')) {
     // Simple form UI to trigger a test send
