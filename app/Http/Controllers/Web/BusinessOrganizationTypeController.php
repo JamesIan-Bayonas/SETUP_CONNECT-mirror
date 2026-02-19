@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Services\BusinessOrganizationTypeRequirementService;
 use App\Services\BusinessOrganizationTypeService;
+use App\Services\DocumentTypeService;
 use App\Http\Controllers\Controller;
 use App\Models\BusinessOrganizationTypeRequirement;
 use App\Models\BusinessOrganizationType;
@@ -14,10 +15,16 @@ class BusinessOrganizationTypeController extends Controller
 {
     protected BusinessOrganizationTypeService $businessOrganizationTypeService;
     protected BusinessOrganizationTypeRequirementService $businessOrganizationTypeRequirementService;
+    protected DocumentTypeService $documentTypeService;
 
-    public function __construct(BusinessOrganizationTypeService $businessOrganizationTypeService, BusinessOrganizationTypeRequirementService $businessOrganizationTypeRequirementService) {
+    public function __construct(
+        BusinessOrganizationTypeService $businessOrganizationTypeService,
+        BusinessOrganizationTypeRequirementService $businessOrganizationTypeRequirementService,
+        DocumentTypeService $documentTypeService
+    ) {
         $this->businessOrganizationTypeService = $businessOrganizationTypeService;
         $this->businessOrganizationTypeRequirementService = $businessOrganizationTypeRequirementService;
+        $this->documentTypeService = $documentTypeService;
     }
 
     /**
@@ -42,7 +49,7 @@ class BusinessOrganizationTypeController extends Controller
      */
     public function show(BusinessOrganizationType $orgType)
     {
-        $orgType->load('requirements');
+        $orgType->load('requirements.documentType');
 
         return Inertia::render('BusinessOrganizationTypes/Show', [
             'orgType' => $orgType,
@@ -56,7 +63,11 @@ class BusinessOrganizationTypeController extends Controller
      */
     public function create()
     {
-        return Inertia::render('BusinessOrganizationTypes/Create');
+        $documentTypes = $this->documentTypeService->getActiveDocumentTypes();
+
+        return Inertia::render('BusinessOrganizationTypes/Create', [
+            'documentTypes' => $documentTypes,
+        ]);
     }
 
     /**
@@ -70,7 +81,7 @@ class BusinessOrganizationTypeController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'requirements' => 'array',
-            'requirements.*.description' => 'required|string',
+            'requirements.*.document_type_id' => 'required|integer|exists:document_types,id',
             'requirements.*.require_attachment' => 'boolean',
         ]); 
 
@@ -82,8 +93,8 @@ class BusinessOrganizationTypeController extends Controller
             foreach ($validated['requirements'] as $req) {
                 $this->businessOrganizationTypeRequirementService->create([
                     'business_organization_type_id' => $orgType->id,
-                    'description' => $req['description'],
-                    'require_attachment' => $req['require_attachment'],
+                    'document_type_id'              => $req['document_type_id'],
+                    'require_attachment'             => $req['require_attachment'] ?? false,
                 ]);
             }
         }
@@ -97,10 +108,12 @@ class BusinessOrganizationTypeController extends Controller
      */
     public function edit(BusinessOrganizationType $orgType)
     {
-        $orgType->load('requirements');
+        $orgType->load('requirements.documentType');
+        $documentTypes = $this->documentTypeService->getActiveDocumentTypes();
 
         return Inertia::render('BusinessOrganizationTypes/Edit', [
-            'orgType' => $orgType,
+            'orgType'       => $orgType,
+            'documentTypes' => $documentTypes,
         ]);
     }
 
@@ -113,7 +126,7 @@ class BusinessOrganizationTypeController extends Controller
             'name' => 'required|string|max:255',
             'requirements' => 'array',
             'requirements.*.id' => 'nullable|integer|exists:business_organization_type_requirements,id',
-            'requirements.*.description' => 'required|string',
+            'requirements.*.document_type_id' => 'required|integer|exists:document_types,id',
             'requirements.*.require_attachment' => 'boolean',
         ]); 
 
@@ -127,7 +140,6 @@ class BusinessOrganizationTypeController extends Controller
         $submittedIds = [];
 
         foreach ($submitted as $reqData) {
-            // If this requirement has an ID, update
             if (!empty($reqData['id'])) {
                 $submittedIds[] = $reqData['id'];
 
@@ -135,17 +147,15 @@ class BusinessOrganizationTypeController extends Controller
 
                 if ($requirement) {
                     $this->businessOrganizationTypeRequirementService->update($requirement, [
-                        'description' => $reqData['description'],
-                        'require_attachment' => $reqData['require_attachment'],
+                        'document_type_id'   => $reqData['document_type_id'],
+                        'require_attachment' => $reqData['require_attachment'] ?? false,
                     ]);
                 }
-            }
-            else {
-                // Otherwise, create a new requirement
+            } else {
                 $new = $this->businessOrganizationTypeRequirementService->create([
                     'business_organization_type_id' => $orgType->id,
-                    'description' => $reqData['description'],
-                    'require_attachment' => $reqData['require_attachment'],
+                    'document_type_id'              => $reqData['document_type_id'],
+                    'require_attachment'             => $reqData['require_attachment'] ?? false,
                 ]);
 
                 $submittedIds[] = $new->id;

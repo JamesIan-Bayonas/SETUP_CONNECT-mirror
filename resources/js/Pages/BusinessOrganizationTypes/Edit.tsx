@@ -1,15 +1,16 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { FormEventHandler, useState } from "react";
 import { Head, Link, useForm, router } from "@inertiajs/react";
-import { BusinessOrganizationType } from "@/types";
+import { BusinessOrganizationType, DocumentType } from "@/types";
 
 interface Props {
     orgType: BusinessOrganizationType;
+    documentTypes: DocumentType[];
 }
 
 interface RequirementForm {
-    id?: number; // existing ones will have id
-    description: string;
+    id?: number;
+    document_type_id: number | null;
     require_attachment: boolean;
 }
 
@@ -17,43 +18,47 @@ interface BusinessOrganizationTypeForm {
     name: string;
 }
 
-export default function Edit({ orgType }: Props) {
+export default function Edit({ orgType, documentTypes }: Props) {
     const { data, setData, processing, errors } = useForm<BusinessOrganizationTypeForm>({
         name: orgType.name,
     });
 
-    // initialize requirements from props
     const [requirements, setRequirements] = useState<RequirementForm[]>(
-        orgType.requirements.map((r: any) => ({
+        orgType.requirements.map((r) => ({
             id: r.id,
-            description: r.description,
+            document_type_id: r.document_type_id,
             require_attachment: r.require_attachment,
-        })) || []
+        }))
     );
 
     const addRequirement = () => {
-        setRequirements(prev => [
+        setRequirements((prev) => [
             ...prev,
-            { description: "", require_attachment: false },
+            { document_type_id: null, require_attachment: false },
         ]);
     };
 
-    const updateRequirement = (index: number, value: string) => {
-        const updated = [...requirements];
-        updated[index].description = value;
-        setRequirements(updated);
+    const updateDocumentType = (index: number, value: number | null) => {
+        setRequirements((prev) => {
+            const updated = [...prev];
+            updated[index] = { ...updated[index], document_type_id: value };
+            return updated;
+        });
     };
 
     const toggleRequireAttachment = (index: number) => {
-        const updated = [...requirements];
-        updated[index].require_attachment = !updated[index].require_attachment;
-        setRequirements(updated);
+        setRequirements((prev) => {
+            const updated = [...prev];
+            updated[index] = {
+                ...updated[index],
+                require_attachment: !updated[index].require_attachment,
+            };
+            return updated;
+        });
     };
 
     const removeRequirement = (index: number) => {
-        const updated = [...requirements];
-        updated.splice(index, 1);
-        setRequirements(updated);
+        setRequirements((prev) => prev.filter((_, i) => i !== index));
     };
 
     const submit: FormEventHandler = (e) => {
@@ -68,8 +73,8 @@ export default function Edit({ orgType }: Props) {
                 formData.append(`requirements[${index}][id]`, req.id.toString());
             }
             formData.append(
-                `requirements[${index}][description]`,
-                req.description
+                `requirements[${index}][document_type_id]`,
+                req.document_type_id?.toString() ?? ""
             );
             formData.append(
                 `requirements[${index}][require_attachment]`,
@@ -78,12 +83,8 @@ export default function Edit({ orgType }: Props) {
         });
 
         router.post(`/org-types/${orgType.id}`, formData, {
-            onSuccess: () => {
-                router.visit("/org-types");
-            },
-            onError: (errors) => {
-                console.error("Error updating:", errors);
-            },
+            onSuccess: () => router.visit("/org-types"),
+            onError: (errs) => console.error("Error updating:", errs),
         });
     };
 
@@ -99,13 +100,13 @@ export default function Edit({ orgType }: Props) {
                             href={`/org-types/${orgType.id}`}
                             className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
                         >
-                            View Business Organization Type
+                            View
                         </Link>
                         <Link
                             href="/org-types"
                             className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
                         >
-                            Back to Business Organization Types
+                            Back
                         </Link>
                     </div>
                 </div>
@@ -118,7 +119,7 @@ export default function Edit({ orgType }: Props) {
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                         <div className="p-6">
                             <form onSubmit={submit} className="space-y-6">
-                                
+
                                 {/* Name Field */}
                                 <div>
                                     <label htmlFor="name" className="block text-md font-medium text-gray-700">
@@ -139,7 +140,7 @@ export default function Edit({ orgType }: Props) {
 
                                 {/* Requirements List */}
                                 <div>
-                                    <div className="flex justify-between items-center">
+                                    <div className="flex justify-between items-center mb-2">
                                         <h3 className="text-lg text-gray-700">Requirements (Optional)</h3>
                                         <button
                                             type="button"
@@ -150,19 +151,40 @@ export default function Edit({ orgType }: Props) {
                                         </button>
                                     </div>
 
+                                    {documentTypes.length === 0 && (
+                                        <p className="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded p-3 mb-2">
+                                            No active document types available.
+                                        </p>
+                                    )}
+
                                     {requirements.length === 0 && (
                                         <p className="text-sm text-gray-500 mt-2">No requirements added.</p>
                                     )}
 
                                     {requirements.map((req, index) => (
                                         <div key={index} className="flex flex-col gap-2 mt-3 p-3 border rounded-md">
-                                            <input
-                                                type="text"
-                                                placeholder="Requirement Description"
-                                                value={req.description}
-                                                onChange={(e) => updateRequirement(index, e.target.value)}
+                                            {/* Document Type Dropdown */}
+                                            <select
+                                                value={req.document_type_id ?? ""}
+                                                onChange={(e) =>
+                                                    updateDocumentType(
+                                                        index,
+                                                        e.target.value ? Number(e.target.value) : null
+                                                    )
+                                                }
                                                 className="p-2 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                                            />
+                                                required
+                                            >
+                                                <option value="" disabled>
+                                                    — Select a document type —
+                                                </option>
+                                                {documentTypes.map((dt) => (
+                                                    <option key={dt.id} value={dt.id}>
+                                                        {dt.name}
+                                                    </option>
+                                                ))}
+                                            </select>
+
                                             <div className="flex items-center justify-between">
                                                 <label className="flex items-center gap-2 text-sm text-gray-700">
                                                     <input

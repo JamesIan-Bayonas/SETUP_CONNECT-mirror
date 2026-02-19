@@ -148,7 +148,53 @@ export default function AuthenticatedLayout({ header, children }: PropsWithChild
             {sidebarOpen && <span className="ml-3">New Message</span>}
           </button>
 
-          {/* Management Section - Only for admin and psto_staff */}
+          {/* My Documents - Cooperators only */}
+          {user.user_type === 'cooperator' && (
+            <Link
+              href="/my-documents"
+              className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                isActive('/my-documents')
+                  ? 'bg-indigo-50 text-indigo-600'
+                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+              }`}
+            >
+              <svg
+                className={`flex-shrink-0 h-6 w-6 ${
+                  isActive('/my-documents') ? 'text-indigo-600' : 'text-gray-400 group-hover:text-gray-500'
+                }`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              {sidebarOpen && <span className="ml-3">My Documents</span>}
+            </Link>
+          )}
+
+          {/* My MOI - Cooperators only */}
+          {user.user_type === 'cooperator' && (
+            <Link
+              href="/my-moi"
+              className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                isActive('/my-moi')
+                  ? 'bg-indigo-50 text-indigo-600'
+                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+              }`}
+            >
+              <svg
+                className={`flex-shrink-0 h-6 w-6 ${
+                  isActive('/my-moi') ? 'text-indigo-600' : 'text-gray-400 group-hover:text-gray-500'
+                }`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+              </svg>
+              {sidebarOpen && <span className="ml-3">My MOI</span>}
+            </Link>
+          )}
           {(user.user_type === 'admin' || user.user_type === 'psto_staff') && (
             <div className="space-y-1">
               {/* Management Group Header */}
@@ -229,6 +275,28 @@ export default function AuthenticatedLayout({ header, children }: PropsWithChild
                        {sidebarOpen && <span className="ml-3">Organization Types</span>}
                     </Link>
                   )}
+
+                  {/* Document Types - Admin and PSTO Staff */}
+                  <Link
+                    href="/document-types"
+                    className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                      isActive('/document-types')
+                        ? 'bg-indigo-50 text-indigo-600'
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    }`}
+                  >
+                    <svg
+                      className={`flex-shrink-0 h-5 w-5 ${
+                        isActive('/document-types') ? 'text-indigo-600' : 'text-gray-400 group-hover:text-gray-500'
+                      }`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    {sidebarOpen && <span className="ml-3">Document Types</span>}
+                  </Link>
                 </div>
               )}
             </div>
@@ -535,6 +603,42 @@ export default function AuthenticatedLayout({ header, children }: PropsWithChild
                 New Message
               </button>
 
+              {/* My Documents - Cooperators only (mobile) */}
+              {user.user_type === 'cooperator' && (
+                <Link
+                  href="/my-documents"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                    isActive('/my-documents')
+                      ? 'bg-indigo-50 text-indigo-600'
+                      : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                >
+                  <svg className="flex-shrink-0 h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  My Documents
+                </Link>
+              )}
+
+              {/* My MOI - Cooperators only (mobile) */}
+              {user.user_type === 'cooperator' && (
+                <Link
+                  href="/my-moi"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                    isActive('/my-moi')
+                      ? 'bg-indigo-50 text-indigo-600'
+                      : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                >
+                  <svg className="flex-shrink-0 h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                  </svg>
+                  My MOI
+                </Link>
+              )}
+
               {/* Management Section */}
               {(user.user_type === 'admin' || user.user_type === 'psto_staff') && (
                 <div className="space-y-1">
@@ -593,6 +697,22 @@ export default function AuthenticatedLayout({ header, children }: PropsWithChild
                           Organization Types
                         </Link>
                       )}
+
+                      {/* Document Types - Admin and PSTO Staff */}
+                      <Link
+                        href="/document-types"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg ${
+                          isActive('/document-types')
+                            ? 'bg-indigo-50 text-indigo-600'
+                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                        }`}
+                      >
+                        <svg className="flex-shrink-0 h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Document Types
+                      </Link>
                     </div>
                   )}
                 </div>
