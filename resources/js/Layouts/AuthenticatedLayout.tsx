@@ -1,7 +1,6 @@
 import { PropsWithChildren, ReactNode, useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import { User } from '@/types';
-
 interface AuthenticatedLayoutProps {
   header?: ReactNode;
 }
@@ -9,8 +8,9 @@ interface AuthenticatedLayoutProps {
 export default function AuthenticatedLayout({ header, children }: PropsWithChildren<AuthenticatedLayoutProps>) {
   const user = usePage<{ auth: { user: User } }>().props.auth.user;
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [managementOpen, setManagementOpen] = useState(true);
-  const [setupOpen, setSetupOpen] = useState(true);
+  const [managementOpen, setManagementOpen] = useState(false);
+  const [setupOpen, setSetupOpen] = useState(false);
+  const [messageOpen, setMessageOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const currentPath = usePage().url;
   const [documentOpen, setDocumentOpen] = useState(true);
@@ -114,6 +114,7 @@ export default function AuthenticatedLayout({ header, children }: PropsWithChild
                 ? 'bg-indigo-50 text-indigo-600'
                 : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
             }`}
+            
           >
             <svg
               className={`flex-shrink-0 h-6 w-6 ${
@@ -255,7 +256,7 @@ export default function AuthenticatedLayout({ header, children }: PropsWithChild
                   <Link
                     href="/customerapprovalform"
                     className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                      isActive('/customerapprovalform')
+                      isActive('/customerapprovalform') 
                         ? 'bg-indigo-50 text-indigo-600'
                         : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                     }`}
@@ -381,8 +382,85 @@ export default function AuthenticatedLayout({ header, children }: PropsWithChild
                 </div>
             )}
           </div>
-        </nav>
 
+
+          {/* Messages Section */}
+          {(user.user_type === 'admin' || user.user_type === 'psto_staff') && (
+            <div className="space-y-1">
+              {/* Message Group Header */}
+              <button
+                onClick={() => setMessageOpen(!messageOpen)}
+                className="group w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-colors"
+              >
+                <div className="flex items-center">
+                  <svg
+                    className="flex-shrink-0 h-6 w-6 text-gray-400 group-hover:text-gray-500"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 8l9 6 9-6M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                    />
+                  </svg>
+                  {sidebarOpen && <span className="ml-3">Messages</span>}
+                </div>
+
+                {sidebarOpen && (
+                  <svg
+                    className={`h-5 w-5 text-gray-400 transform transition-transform ${
+                      messageOpen ? 'rotate-90' : ''
+                    }`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                )}
+              </button>
+
+              {/* Message Sub-items */}
+              {(messageOpen || !sidebarOpen) && (
+                <div className={`space-y-1 ${sidebarOpen ? 'pl-3' : ''}`}>
+                  {/* Sent Message Link */}
+                  <Link
+                    href="/messages"
+                    className={`w-full group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                      isActive('/messages')
+                        ? 'bg-indigo-50 text-indigo-600'
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    }`}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M3 3l18 9-18 9 4-9-4-9z"
+                      />
+                    </svg>
+                    {sidebarOpen && <span className="ml-3">Sent Message</span>}
+                  </Link>
+                </div>
+              )}
+            </div>
+          )}
+        </nav>
         {/* Sidebar Footer - Collapse Hint */}
         {sidebarOpen && (
           <div className="p-3 border-t border-gray-200">
@@ -455,7 +533,7 @@ export default function AuthenticatedLayout({ header, children }: PropsWithChild
                         href="/users"
                         onClick={() => setMobileMenuOpen(false)}
                         className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg ${
-                          isActive('/users')
+                          isActive('/users') 
                             ? 'bg-indigo-50 text-indigo-600'
                             : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                         }`}
@@ -471,7 +549,7 @@ export default function AuthenticatedLayout({ header, children }: PropsWithChild
                           href="/org-types"
                           onClick={() => setMobileMenuOpen(false)}
                           className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg ${
-                            isActive('/org-types')
+                            isActive('/org-types') 
                               ? 'bg-indigo-50 text-indigo-600'
                               : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                           }`}
@@ -519,7 +597,7 @@ export default function AuthenticatedLayout({ header, children }: PropsWithChild
                         href="/customerapprovalform"
                         onClick={() => setMobileMenuOpen(false)}
                         className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg ${
-                          isActive('/customerapprovalform')
+                          isActive('/customerapprovalform') 
                             ? 'bg-indigo-50 text-indigo-600'
                             : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                         }`}
@@ -534,7 +612,7 @@ export default function AuthenticatedLayout({ header, children }: PropsWithChild
                         href="/setupcustomers"
                         onClick={() => setMobileMenuOpen(false)}
                         className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg ${
-                          isActive('/setupcustomers')
+                          isActive('/setupcustomers') 
                             ? 'bg-indigo-50 text-indigo-600'
                             : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                         }`}
@@ -629,15 +707,17 @@ export default function AuthenticatedLayout({ header, children }: PropsWithChild
           sidebarOpen ? 'lg:pl-64' : 'lg:pl-20'
         }`}
       >
-        {header && (
-          <header className="bg-white shadow">
-            <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-              {header}
-            </div>
-          </header>
-        )}
-
-        <main className="min-h-[calc(100vh-4rem)]">{children}</main>
+      {header && ( 
+  <header className="bg-white shadow">
+    <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+      {header}
+    </div>
+  </header>
+)}
+    <main>
+  
+       {children} 
+    </main>
       </div>
     </div>
   );

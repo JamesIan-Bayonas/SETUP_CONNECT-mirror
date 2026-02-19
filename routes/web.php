@@ -80,6 +80,7 @@ Route::middleware('auth')->group(function () {
     });
 });
 
+
 // Public application form (no auth required)
 Route::get('/application-form', [CustomerController::class, 'index'])->name('customer.form');
 
@@ -108,6 +109,17 @@ Route::middleware('auth')->group(function () {
         ->name('setupcustomers.toggle');
     Route::post('/setupcustomer', [SetUpCustomerController::class, 'store'])
         ->name('customer.add');
+});
+
+// Message Route
+Route::middleware('auth')->group(function () {
+
+    Route::get('/messages', function () {
+        
+        return inertia('Message/Index', [
+            'initialMessages' => [], 
+        ]);
+    })->name('messages');
 });
 
 // Local dev route to test approval email dispatch
