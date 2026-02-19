@@ -8,9 +8,7 @@ function isValidFile(file: File | null): boolean {
 }
 
 function getFileStatus(file: File | null): { isValid: boolean; message: string } {
-    if (!file) {
-        return { isValid: false, message: '' };
-    }
+    if (!file) return { isValid: false, message: '' };
     if (isValidFile(file)) {
         return { isValid: true, message: 'File type accepted ✓' };
     }
@@ -31,9 +29,7 @@ export default function Upload() {
     const canUpload = file !== null && fileStatus.isValid;
 
     const handleFileSelect = (selectedFile: File | undefined) => {
-        if (selectedFile) {
-            setFile(selectedFile);
-        }
+        if (selectedFile) setFile(selectedFile);
     };
 
     const handleUploadClick = () => {
@@ -46,11 +42,29 @@ export default function Upload() {
         setIsUploadComplete(false);
     };
 
+    // NEW: close modal and return to previous route
+    const handleCloseModal = () => window.history.back();
+
     return (
         <AuthenticatedLayout>
-            <div className="p-6">
-                <div className="bg-white rounded-xl shadow-sm border border-slate-100 max-w-2xl">
-                    {/* Header */}
+            {/* Render the Upload form as a centered modal so it looks like your screenshot */}
+            <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+                <div
+                    className={`
+                        bg-white rounded-xl shadow-2xl border border-slate-100 max-w-2xl w-full
+                        transition-all duration-300 ease-out
+                    `}
+                >
+                    <button
+                        type="button"
+                        onClick={handleCloseModal}
+                        className="absolute right-4 top-4 z-50 rounded-md bg-white/80 px-2 py-1 text-slate-600 hover:text-slate-800"
+                        aria-label="Close upload"
+                    >
+                        ×
+                    </button>
+
+                    {/* Card Header */}
                     <div className="flex items-center gap-3 border-b border-slate-100 px-6 py-5">
                         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50">
                             <svg
@@ -81,7 +95,7 @@ export default function Upload() {
                     {/* Card Body */}
                     <div className="px-6 py-5">
                         <form className="space-y-5">
-                            {/* File Upload */}
+                            {/* File Upload section – unchanged */}
                             <div>
                                 <label className="mb-1.5 block text-sm font-medium text-slate-700">
                                     Select File <span className="text-red-500">*</span>
@@ -123,7 +137,6 @@ export default function Upload() {
                                                     <line x1="12" y1="3" x2="12" y2="15" />
                                                 </svg>
                                             </div>
-
                                             <div className="text-center">
                                                 <p className="text-sm font-medium text-slate-600">
                                                     Click to browse or drag & drop
@@ -132,7 +145,6 @@ export default function Upload() {
                                                     PDF, DOCX, XLSX, DOC, XLS — Max 20 MB
                                                 </p>
                                             </div>
-
                                             <input
                                                 type="file"
                                                 className="hidden"
@@ -151,7 +163,6 @@ export default function Upload() {
                                         >
                                             ✕
                                         </button>
-
                                         <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-50 text-blue-600 text-xl">
                                             {(() => {
                                                 const ext = file.name.split('.').pop()?.toLowerCase();
@@ -161,7 +172,6 @@ export default function Upload() {
                                                 return '📁';
                                             })()}
                                         </div>
-
                                         <div className="flex-1">
                                             <div className="text-sm font-medium text-slate-700">
                                                 {file.name}
@@ -264,9 +274,9 @@ export default function Upload() {
                 </div>
             </div>
 
-            {/* Success Modal */}
+            {/* Upload Complete Modal – already has nice overlay */}
             {isUploadComplete && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
                     <div className="relative w-full max-w-xl rounded-2xl bg-white p-6 shadow-2xl">
                         <button
                             type="button"
