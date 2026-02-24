@@ -28,10 +28,12 @@ const BusinessInfo: React.FC<BusinessInfoProps> = ({
     const [orgTypeOptions, setOrgTypeOptions] = useState<OrgType[]>([]);
     const [loadingOrgTypes, setLoadingOrgTypes] = useState(true);
 
+    const phoneRegex = /^09\d{2} \d{4} \d{3}$/;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const websiteRegex =
         /^(https?:\/\/)?([\w-]+\.)+[\w-]{2,}(\/[\w\-._~:/?#[\]@!$&'()*+,;=]*)?$/i;
 
+    const isValidContactNumber = formData.contactNumbers.trim() === "" || phoneRegex.test(formData.contactNumbers);
     const isValidEmail = formData.emailAddress.trim() === "" || emailRegex.test(formData.emailAddress);
     const isValidWebsite = formData.website.trim() === "" || websiteRegex.test(formData.website);
 
@@ -270,7 +272,13 @@ const BusinessInfo: React.FC<BusinessInfoProps> = ({
                             <p className="text-red-500 text-sm mt-1">
                                 Contact number must be 11 digits
                             </p>
-                        )}
+                    )}
+                    {submitted && formData.contactNumbers.replace(/\s/g, "").length > 0 &&
+                        !isValidContactNumber && (
+                            <p className="text-red-500 text-sm mt-1">
+                                Please enter a valid contact number (09XX XXX XXXX)
+                            </p>
+                    )}
                 </div>
 
                 {/* Email Address */}
