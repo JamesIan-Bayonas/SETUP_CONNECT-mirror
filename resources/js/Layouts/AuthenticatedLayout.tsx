@@ -897,7 +897,7 @@ export default function AuthenticatedLayout({ header, children }: PropsWithChild
                         <svg xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0 h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3l18 9-18 9 4-9-4-9z" />
                         </svg>
-                        Sent Message
+                        Inbox
                       </Link>
                     </div>
                   )}
