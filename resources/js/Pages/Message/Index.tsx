@@ -1,19 +1,26 @@
 import { useState, useEffect } from "react";
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
-import { Search, Trash2, Archive } from 'lucide-react';// Optional: for icons
+import { 
+  Search, 
+  Trash2, 
+  Archive, 
+  ChevronLeft, 
+  ChevronRight 
+} from 'lucide-react';
 import CreateMessageModal from '../Messages/CreateMessageModal';
+
 interface Message {
   id: number;
   recipient: string;
   subject: string;
-  date: string;
+  date: string; // ISO format: "YYYY-MM-DDTHH:mm:ss"
   isRead: boolean;
 }
 
 // --- EXPANDED DUMMY DATA (30 ITEMS) ---
 const FAKE_MESSAGES: Message[] = [
-  { id: 1, recipient: "Sarah Johnson", subject: "Permit Application Inquiry – Follow-up", date: "2024-01-15 10:30 AM", isRead: true },
+  { id: 1, recipient: "Sarah Johnson", subject: "Permit Application Inquiry – Follow-up", date: "2026-02-24 10:30 AM", isRead: true },
   { id: 2, recipient: "Michael Brown", subject: "Missing Requirements – Attached updated files", date: "2024-01-15 09:45 AM", isRead: false },
   { id: 3, recipient: "Jennifer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
   { id: 4, recipient: "Jenni", subject: "UI Design Feedback - Requesting changes", date: "2024-01-16 11:00 AM", isRead: true },
@@ -45,27 +52,50 @@ const FAKE_MESSAGES: Message[] = [
   { id: 30, recipient: "Leo Messi", subject: "Training Schedule Adjustment", date: "2024-02-10 08:20 AM", isRead: false },
 ];
 
+// ... (Your FAKE_MESSAGES array here)
+// --- DATE HELPER FUNCTION ---
+const formatMessageDate = (dateString: string) => {
+  const messageDate = new Date(dateString);
+  const now = new Date();
+  const isToday = messageDate.toDateString() === now.toDateString();
+
+  if (isToday) {
+    return messageDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  } else {
+    return messageDate.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  }
+};
+
 export default function SetupMessageUI() {
-  const [messages] = useState<Message[]>(FAKE_MESSAGES);
+  const [messages, setMessages] = useState<Message[]>(FAKE_MESSAGES);
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState<"all" | "read" | "unread">("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6; // Set to 6 to match the visual density of the screenshot
+  const itemsPerPage = 10; 
 
-  const trimmedSearch = searchTerm.trim().toLowerCase();
+  const toggleSelect = (id: number) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  };
+
+  const handleViewMessage = (id: number) => {
+    setMessages(prev => prev.map(m => m.id === id ? { ...m, isRead: true } : m));
+  };
 
   const filteredMessages = messages.filter((msg) => {
-    const matchesSearch = !trimmedSearch || 
-      msg.recipient.toLowerCase().includes(trimmedSearch) || 
-      msg.subject.toLowerCase().includes(trimmedSearch);
+    const matchesSearch = !searchTerm || 
+      msg.recipient.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      msg.subject.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filter === "all" || (filter === "read" && msg.isRead) || (filter === "unread" && !msg.isRead);
     return matchesSearch && matchesFilter;
   });
 
-  const totalPages = Math.ceil(filteredMessages.length / itemsPerPage);
-  const paginatedMessages = filteredMessages.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const totalResults = filteredMessages.length;
+  const totalPages = Math.ceil(totalResults / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, totalResults);
+  const paginatedMessages = filteredMessages.slice(startIndex, endIndex);
 
   useEffect(() => { setCurrentPage(1); }, [filter, searchTerm]);
 
@@ -73,108 +103,136 @@ export default function SetupMessageUI() {
     <AuthenticatedLayout>
       <Head title="Inbox" />
 
-      <div className="min-h-screen bg-[#F8F9FA] p-8">
-        <div className="max-w-6xl mx-auto">
+      <div className="min-h-screen bg-[#F9FAFB] p-2 md:p-4 font-sans"> 
+        <div className="max-w-full mx-auto bg-white rounded-xl shadow-sm min-h-[90vh] p-6 flex flex-col">
           
-          {/* HEADER SECTION */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">
-              Inbox <span className="text-gray-400">({filteredMessages.length})</span>
-            </h1>
-            
-            <div className="relative w-full md:w-96">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="text"
-                placeholder="Search"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-white border-none rounded-full shadow-sm focus:ring-2 focus:ring-indigo-500 transition-all"
-              />
+          <div className="flex-1">
+            {/* HEADER */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+              <h1 className="text-2xl font-bold text-gray-900">
+                Inbox <span className="text-gray-400 font-medium">({totalResults})</span>
+              </h1>
+              
+              <div className="relative w-full md:w-1/3">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <input
+                  type="text"
+                  placeholder="Search"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-[#F3F4F6] border-none rounded-full focus:ring-2 focus:ring-indigo-500 text-sm"
+                />
+              </div>
             </div>
-          </div>
 
-          {/* ACTION BAR */}
-          <div className="flex items-center gap-4 mb-6">
-            <button 
-              onClick={() => setIsModalOpen(true)}
-              className="bg-[#5156E5] hover:bg-[#4348C8] text-white px-8 py-2.5 rounded-xl font-semibold transition-all shadow-md"
-            >
-              Compose +
-            </button>
-
-            <div className="flex bg-white p-1 rounded-xl shadow-sm border border-gray-100">
-              {(["all", "read", "unread"] as const).map((f) => (
-                <button
-                  key={f}
-                  onClick={() => setFilter(f)}
-                  className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${
-                    filter === f ? "bg-[#5156E5] text-white shadow-inner" : "text-gray-500 hover:bg-gray-50"
-                  }`}
-                >
-                  {f.charAt(0).toUpperCase() + f.slice(1)}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* MESSAGE LIST */}
-          <div className="space-y-3">
-            {paginatedMessages.map((msg) => (
-              <div 
-                key={msg.id}
-                className={`group flex items-center gap-6 p-5 rounded-2xl transition-all border border-transparent hover:border-indigo-100 ${
-                  !msg.isRead ? "bg-[#E0E2FF]" : "bg-[#F1F1F1]"
-                }`}
+            {/* ACTION BAR */}
+            <div className="flex items-center gap-3 mb-6">
+              <button 
+                onClick={() => setIsModalOpen(true)}
+                className="bg-[#5156E5] hover:bg-[#4348C8] text-white px-6 py-2 rounded-lg font-bold text-sm transition-all"
               >
-                <div className="flex items-center gap-4">
-                   <input type="checkbox" className="w-5 h-5 rounded border-gray-300 text-[#5156E5] focus:ring-[#5156E5]" />
-                </div>
+                Compose +
+              </button>
 
-                <div className="flex-1 grid grid-cols-12 items-center gap-4">
-                  <div className="col-span-3 font-bold text-gray-900 truncate">
-                    {msg.recipient}
-                  </div>
-                  
-                  <div className="col-span-7 flex items-baseline gap-2 overflow-hidden">
-                    <span className="font-bold text-gray-900 whitespace-nowrap">{msg.subject}</span>
-                    <span className="text-gray-500 text-sm truncate opacity-80">
-                      - So I created this design to make the UI more engaging and to make the user feel like its easy to navigate...
-                    </span>
-                  </div>
+              <div className="flex bg-[#F3F4F6] p-1 rounded-lg">
+                {(["all", "read", "unread"] as const).map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => setFilter(f)}
+                    className={`px-5 py-1.5 rounded-md text-xs font-bold transition-all ${
+                      filter === f ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                    }`}
+                  >
+                    {f.charAt(0).toUpperCase() + f.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-                  <div className="col-span-2 text-right">
-                    <div className="text-xs font-bold text-gray-900 mb-1">11:44 AM</div>
-                    <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button className="p-1 hover:bg-white rounded text-gray-600"><Archive size={16}/></button>
-                      <button className="p-1 hover:bg-white rounded text-red-500"><Trash2 size={16}/></button>
+            {/* MESSAGE LIST */}
+            <div className="border-t border-gray-100"> 
+              {paginatedMessages.map((msg) => {
+                const isSelected = selectedIds.includes(msg.id);
+                return (
+                  <div 
+                    key={msg.id}
+                    onClick={() => handleViewMessage(msg.id)}
+                    /* MODIFICATION: 
+                      - If isSelected: background is Blue.
+                      - Else if !isRead: background is Grey (no hover:bg-white added).
+                      - Else (isRead): background is White, and turns light grey on hover.
+                    */
+                    className={`flex items-center gap-4 p-4 rounded-xl transition-all duration-200 cursor-pointer border-b border-gray-100 relative
+                      ${isSelected 
+                        ? "bg-[#DDE0FF] border-indigo-200 shadow-sm" 
+                        : !msg.isRead 
+                          ? "bg-[#F3F4F6]" // Unread: Stays grey, no hover background change
+                          : "bg-white hover:bg-gray-50" // Read: White, changes to light grey on hover
+                      }
+                      hover:shadow-lg hover:z-10
+                    `}
+                  >
+                    <div className="flex items-center" onClick={(e) => e.stopPropagation()}>
+                      <input 
+                        type="checkbox" 
+                        checked={isSelected}
+                        onChange={() => toggleSelect(msg.id)}
+                        className="w-5 h-5 rounded border-gray-300 text-[#5156E5] focus:ring-[#5156E5]" 
+                      />
+                    </div>
+
+                    <div className="flex-1 grid grid-cols-12 items-center gap-2">
+                      <div className={`col-span-3 truncate text-sm ${!msg.isRead ? "font-bold text-black" : "font-medium text-gray-700"}`}>
+                        {msg.recipient}
+                      </div>
+                      <div className="col-span-7 flex items-baseline gap-2 overflow-hidden">
+                        <span className={`text-sm whitespace-nowrap ${!msg.isRead ? "font-bold text-black" : "font-semibold text-gray-800"}`}>
+                          {msg.subject}
+                        </span>
+                        <span className="text-gray-500 text-xs truncate">
+                          - I created this design to make the UI more engaging...
+                        </span>
+                      </div>
+                      <div className="col-span-2 text-right flex flex-col items-end min-w-[80px]">
+                        <div className="text-[10px] font-bold text-gray-900">
+                          {formatMessageDate(msg.date)}
+                        </div>
+                        <div className={`flex gap-1 mt-1 transition-opacity ${isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}>
+                          <button className="p-1 hover:bg-gray-100 rounded text-gray-600"><Archive size={14}/></button>
+                          <button className="p-1 hover:bg-gray-100 rounded text-red-500"><Trash2 size={14}/></button>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            ))}
+                );
+              })}
+            </div>
           </div>
 
-          {/* PAGINATION */}
-          {totalPages > 1 && (
-            <div className="flex justify-center items-center gap-4 mt-8">
+          {/* FOOTER */}
+          <div className="mt-8 pt-6 border-t border-gray-100 flex items-center justify-between">
+            <div className="text-sm font-bold text-gray-600">
+              {totalResults > 0 ? `${startIndex + 1}-${endIndex} of ${totalResults} results` : "0 results"}
+            </div>
+
+            <div className="flex gap-2">
               <button 
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage(prev => prev - 1)}
-                className="p-2 rounded-full bg-white shadow-sm border border-gray-200 disabled:opacity-30"
+                className="p-2 rounded-lg bg-[#F3F4F6] hover:bg-gray-200 disabled:opacity-40 transition-colors"
               >
-                ←
+                <ChevronLeft size={20} className="text-gray-700" />
               </button>
-              <span className="text-sm font-bold text-gray-600">Page {currentPage} of {totalPages}</span>
+              
               <button 
-                disabled={currentPage === totalPages}
+                disabled={currentPage === totalPages || totalPages === 0}
                 onClick={() => setCurrentPage(prev => prev + 1)}
-                className="p-2 rounded-full bg-white shadow-sm border border-gray-200 disabled:opacity-30"
+                className="p-2 rounded-lg bg-[#F3F4F6] hover:bg-gray-200 disabled:opacity-40 transition-colors"
               >
-                →
+                <ChevronRight size={20} className="text-gray-700" />
               </button>
             </div>
-          )}
+          </div>
         </div>
       </div>
 
