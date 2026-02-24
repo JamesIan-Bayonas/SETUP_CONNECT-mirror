@@ -486,6 +486,35 @@ export default function AuthenticatedLayout({ header, children }: PropsWithChild
                       </svg>
                       {sidebarOpen && <span className="ml-3">Upload</span>}
                   </Link>
+                  {/* View Files (Will be removed later)*/}
+                  <Link
+                    href="/files/view"
+                    className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                      isActive("/files/view")
+                        ? "bg-indigo-50 text-indigo-600"
+                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                    }`}
+                  >
+                    <svg
+                      className={`flex-shrink-0 h-5 w-5 ${
+                        isActive("/files/view")
+                          ? "text-indigo-600"
+                          : "text-gray-400 group-hover:text-gray-500"
+                      }`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 12H9m-7 9V3a2 2 0 012-2h8l6 6v14a2 2 0 01-2 2H5a2 2 0 01-2-2z"
+                      />
+                    </svg>
+
+                    {sidebarOpen && <span className="ml-3">View Files</span>}
+                  </Link>
                 </div>
             )}
           </div>

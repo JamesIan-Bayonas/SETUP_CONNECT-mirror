@@ -202,3 +202,7 @@ HTML);
 Route::get('/Files/view', function () {
     return Inertia::render('Files/View');
 });
+
+Route::get('/files/view', function () {
+    return Inertia::render('Files/ViewFile'); // will be removed later
+})->name('files.view');
