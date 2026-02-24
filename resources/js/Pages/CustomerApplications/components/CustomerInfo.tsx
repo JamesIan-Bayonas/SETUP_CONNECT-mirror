@@ -12,6 +12,12 @@ interface CustomerInfoProps {
     inputClass: (field: keyof FormData) => string;
 }
 
+const capitalizeFirstLetter = (value: string): string => {
+  if (!value) return "";
+  return value.charAt(0).toUpperCase() + value.slice(1);
+};
+
+
 const CustomerInfo: React.FC<CustomerInfoProps> = ({
     formData,
     handleChange,
@@ -40,7 +46,7 @@ const CustomerInfo: React.FC<CustomerInfoProps> = ({
                     <input
                         type="text"
                         name="firstName"
-                        value={formData.firstName}
+                        value={capitalizeFirstLetter(formData.firstName)}
                         onChange={handleChange}
                         placeholder="e.g. John"
                         className={inputClass("firstName")}
@@ -56,7 +62,7 @@ const CustomerInfo: React.FC<CustomerInfoProps> = ({
                     <input
                         type="text"
                         name="middleName"
-                        value={formData.middleName}
+                        value={capitalizeFirstLetter(formData.middleName)}
                         onChange={handleChange}
                         placeholder="e.g. Andrew"
                         className="form-input border border-gray-400 rounded px-3 py-2 w-full"
@@ -69,7 +75,7 @@ const CustomerInfo: React.FC<CustomerInfoProps> = ({
                     <input
                         type="text"
                         name="lastName"
-                        value={formData.lastName}
+                        value={capitalizeFirstLetter(formData.lastName)}
                         onChange={handleChange}
                         placeholder="e.g. Doe"
                         className={inputClass("lastName")}
@@ -89,7 +95,7 @@ const CustomerInfo: React.FC<CustomerInfoProps> = ({
                     <input
                         type="text"
                         name="suffix"
-                        value={formData.suffix}
+                        value={capitalizeFirstLetter(formData.suffix)}
                         onChange={handleChange}
                         placeholder="e.g. Jr., Sr., III"
                         className="form-input border border-gray-400 rounded px-3 py-2 w-full"
