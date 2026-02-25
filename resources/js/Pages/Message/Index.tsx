@@ -5,7 +5,7 @@ import {
   Search, 
   Trash2, 
   Archive, 
-  ChevronLeft, 
+  ChevronLeft,  
   ChevronRight 
 } from 'lucide-react';
 import CreateMessageModal from '../Messages/CreateMessageModal';
@@ -16,6 +16,34 @@ interface Message {
   subject: string;
   date: string; // ISO format: "YYYY-MM-DDTHH:mm:ss"
   isRead: boolean;
+}
+
+// 🔶 Highlight matching search text
+function HighlightText({
+  text,
+  highlight,
+}: {
+  text: string;
+  highlight: string;
+}) {
+  if (!highlight.trim()) return <span>{text}</span>;
+
+  const regex = new RegExp(`(${highlight})`, "gi");
+  const parts = text.split(regex);
+
+  return (
+    <span>
+      {parts.map((part, i) =>
+        regex.test(part) ? (
+          <mark key={i} className="bg-yellow-200 rounded px-0.5">
+            {part}
+          </mark>
+        ) : (
+          <span key={i}>{part}</span>
+        )
+      )}
+    </span>
+  );
 }
 
 // --- EXPANDED DUMMY DATA (30 ITEMS) ---
@@ -183,11 +211,11 @@ export default function SetupMessageUI() {
 
                     <div className="flex-1 grid grid-cols-12 items-center gap-2">
                       <div className={`col-span-3 truncate text-sm ${!msg.isRead ? "font-bold text-black" : "font-medium text-gray-700"}`}>
-                        {msg.recipient}
+                       <HighlightText text={msg.recipient} highlight={searchTerm} />
                       </div>
                       <div className="col-span-7 flex items-baseline gap-2 overflow-hidden">
                         <span className={`text-sm whitespace-nowrap ${!msg.isRead ? "font-bold text-black" : "font-semibold text-gray-800"}`}>
-                          {msg.subject}
+                          <HighlightText text={msg.subject} highlight={searchTerm} />
                         </span>
                         <span className="text-gray-500 text-xs truncate">
                           - I created this design to make the UI more engaging...
