@@ -46,7 +46,7 @@ function HighlightText({
   );
 }
 
-// --- EXPANDED DUMMY DATA (30 ITEMS) ---
+// --- DUMMY DATA (30 ITEMS) ---
 const FAKE_MESSAGES: Message[] = [
   { id: 1, recipient: "Sarah Johnson", subject: "Permit Application Inquiry – Follow-up", date: "2026-02-24 10:30 AM", isRead: true },
   { id: 2, recipient: "Michael Brown", subject: "Missing Requirements – Attached updated files", date: "2024-01-15 09:45 AM", isRead: false },
@@ -80,7 +80,6 @@ const FAKE_MESSAGES: Message[] = [
   { id: 30, recipient: "Leo Messi", subject: "Training Schedule Adjustment", date: "2024-02-10 08:20 AM", isRead: false },
 ];
 
-// ... (Your FAKE_MESSAGES array here)
 // --- DATE HELPER FUNCTION ---
 const formatMessageDate = (dateString: string) => {
   const messageDate = new Date(dateString);
@@ -141,27 +140,53 @@ export default function SetupMessageUI() {
                 Inbox <span className="text-gray-400 font-medium">({totalResults})</span>
               </h1>
               
-              <div className="relative w-full md:w-1/3">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <input
-                  type="text"
-                  placeholder="Search"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-[#F3F4F6] border-none rounded-full focus:ring-2 focus:ring-indigo-500 text-sm"
-                />
+              {/* ACTIVE + SEARCH BAR */}
+              <div className="flex items-center gap-3 w-full max-w-xl">
+
+                {/* Active Status */}
+                <div className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-full shadow-sm whitespace-nowrap">
+                  <span className="relative flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                  </span>
+                  <span className="text-xs font-semibold text-gray-700">
+                    Active
+                  </span>
+                </div>
+
+                {/* Search Bar */}
+                <div className="relative flex-1">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4 z-10" />
+                  <input
+                    type="text"
+                    placeholder="Search"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 bg-[#F3F4F6] text-gray-700 border-none rounded-full focus:outline-none focus:ring-0 focus:bg-white focus:shadow-md transition-all duration-200 text-sm"
+                  />
+                </div>
+
               </div>
             </div>
 
             {/* ACTION BAR */}
             <div className="flex items-center gap-3 mb-6">
-              <button 
+             <button 
                 onClick={() => setIsModalOpen(true)}
-                className="bg-[#5156E5] hover:bg-[#4348C8] text-white px-6 py-2 rounded-lg font-bold text-sm transition-all"
+                className="flex items-center gap-2 bg-[#5156E5] hover:bg-[#4348C8] text-white px-6 py-2 rounded-lg font-bold text-sm transition-all"
               >
-                Compose +
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  fill="none" 
+                  viewBox="0 0 24 24" 
+                  strokeWidth={2} 
+                  stroke="currentColor" 
+                  className="w-4 h-4"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
+                </svg>
+                Compose 
               </button>
-
               <div className="flex bg-[#F3F4F6] p-1 rounded-lg">
                 {(["all", "read", "unread"] as const).map((f) => (
                   <button
@@ -185,17 +210,12 @@ export default function SetupMessageUI() {
                   <div 
                     key={msg.id}
                     onClick={() => handleViewMessage(msg.id)}
-                    /* MODIFICATION: 
-                      - If isSelected: background is Blue.
-                      - Else if !isRead: background is Grey (no hover:bg-white added).
-                      - Else (isRead): background is White, and turns light grey on hover.
-                    */
                     className={`flex items-center gap-4 p-4 rounded-xl transition-all duration-200 cursor-pointer border-b border-gray-100 relative
                       ${isSelected 
                         ? "bg-[#DDE0FF] border-indigo-200 shadow-sm" 
                         : !msg.isRead 
-                          ? "bg-[#F3F4F6]" // Unread: Stays grey, no hover background change
-                          : "bg-white hover:bg-gray-50" // Read: White, changes to light grey on hover
+                          ? "bg-gray-100 border-gray-200 rounded-lg p-4"
+                          : "bg-white hover:bg-gray-50"
                       }
                       hover:shadow-lg hover:z-10
                     `}
@@ -235,31 +255,32 @@ export default function SetupMessageUI() {
                 );
               })}
             </div>
-          </div>
 
-          {/* FOOTER */}
-          <div className="mt-8 pt-6 border-t border-gray-100 flex items-center justify-between">
-            <div className="text-sm font-bold text-gray-600">
-              {totalResults > 0 ? `${startIndex + 1}-${endIndex} of ${totalResults} results` : "0 results"}
+            {/* FOOTER */}
+            <div className="mt-8 pt-6 border-t border-gray-100 flex items-center justify-between">
+              <div className="text-xs text-gray-600">
+                {totalResults > 0 ? `${startIndex + 1}-${endIndex} of ${totalResults} results` : "0 results"}
+              </div>
+
+              <div className="flex gap-2">
+                <button 
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(prev => prev - 1)}
+                  className="p-2 rounded-lg bg-[#F3F4F6] hover:bg-gray-200 disabled:opacity-40 transition-colors"
+                >
+                  <ChevronLeft size={20} className="text-gray-700" />
+                </button>
+                
+                <button 
+                  disabled={currentPage === totalPages || totalPages === 0}
+                  onClick={() => setCurrentPage(prev => prev + 1)}
+                  className="p-2 rounded-lg bg-[#F3F4F6] hover:bg-gray-200 disabled:opacity-40 transition-colors"
+                >
+                  <ChevronRight size={20} className="text-gray-700" />
+                </button>
+              </div>
             </div>
 
-            <div className="flex gap-2">
-              <button 
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage(prev => prev - 1)}
-                className="p-2 rounded-lg bg-[#F3F4F6] hover:bg-gray-200 disabled:opacity-40 transition-colors"
-              >
-                <ChevronLeft size={20} className="text-gray-700" />
-              </button>
-              
-              <button 
-                disabled={currentPage === totalPages || totalPages === 0}
-                onClick={() => setCurrentPage(prev => prev + 1)}
-                className="p-2 rounded-lg bg-[#F3F4F6] hover:bg-gray-200 disabled:opacity-40 transition-colors"
-              >
-                <ChevronRight size={20} className="text-gray-700" />
-              </button>
-            </div>
           </div>
         </div>
       </div>

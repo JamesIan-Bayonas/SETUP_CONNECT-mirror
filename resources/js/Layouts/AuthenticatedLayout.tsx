@@ -561,7 +561,7 @@ export default function AuthenticatedLayout({ header, children }: PropsWithChild
                         d="M3 3l18 9-18 9 4-9-4-9z"
                       />
                     </svg>
-                    {sidebarOpen && <span className="ml-3">Sent Message</span>}
+                    {sidebarOpen && <span className="ml-3">Inbox</span>}
                   </Link>
                 </div>
               )}
