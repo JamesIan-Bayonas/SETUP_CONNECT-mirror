@@ -75,7 +75,41 @@ const ViewMessageModal: React.FC<ViewMessageModalProps> = ({ isOpen, onClose, me
           </div>
         </div>
 
-        
+        {/* BODY */}
+        <div className="p-5 overflow-y-auto bg-white flex-1 text-sm text-gray-800">
+           <div className="flex justify-between items-start mb-5 border-b border-gray-100 pb-4">
+              <div>
+                <p className="font-bold text-base">{message.sender_name}</p>
+                <p className="text-xs text-gray-500 mt-0.5">&lt;{message.sender_email}&gt;</p>
+              </div>
+              <div className="text-xs text-gray-500 text-right">
+                 <p className="font-medium">{formattedDate}</p>
+                 <p>{formattedTime}</p>
+              </div>
+           </div>
+           <div className="whitespace-pre-wrap leading-relaxed text-gray-700">
+             {message.body}
+           </div>
+        </div>
+
+        {/* FOOTER */}
+        <div className={`px-4 py-3 bg-gray-50 border-t border-gray-200 flex items-center justify-between ${isMaximized ? 'rounded-b-xl' : 'rounded-b-lg'}`}>
+           <div>
+             {message.attachment_name ? (
+                <div className="flex items-center gap-2 text-sm text-blue-700 bg-blue-100 px-3 py-1.5 rounded-full border border-blue-200 cursor-pointer hover:bg-blue-200 transition">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 transform rotate-45">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" />
+                  </svg>
+                  <span className="truncate max-w-[200px] font-medium">{message.attachment_name}</span>
+                </div>
+             ) : (
+                <span className="text-xs text-gray-400 italic">No attachments</span>
+             )}
+           </div>
+           <button onClick={() => { setIsMaximized(false); onClose(); }} className="px-4 py-1.5 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-full hover:bg-gray-100 hover:text-gray-900 transition shadow-sm">
+             Close
+           </button>
+        </div>
 
       </div>
     </div>
