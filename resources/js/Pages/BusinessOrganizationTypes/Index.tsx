@@ -25,7 +25,7 @@ export default function Index({ orgTypes }: Props)
                     href="/org-types/create"
                     className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded"
                 >
-                    Create Business Organization Type
+                    Create Organization Type
                 </Link>
             </div>
         }>

@@ -92,7 +92,7 @@ export default function Create({ documentTypes }: Props) {
                         href="/org-types"
                         className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
                     >
-                        Back to Business Organization Types
+                        Back to Organization Types
                     </Link>
                 </div>
             }
@@ -233,7 +233,7 @@ export default function Create({ documentTypes }: Props) {
                                         disabled={processing}
                                         className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50"
                                     >
-                                        {processing ? "Creating..." : "Create Business Organization Type"}
+                                        {processing ? "Creating..." : "Create Organization Type"}
                                     </button>
                                 </div>
                             </form>
