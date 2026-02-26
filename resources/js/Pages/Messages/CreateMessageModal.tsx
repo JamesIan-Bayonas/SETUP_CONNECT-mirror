@@ -86,7 +86,7 @@ const CreateMessageModal: React.FC<CreateMessageModalProps> = ({ isOpen, onClose
       <div className={containerClasses}>
         
         {/* HEADER */}
-        <div className="bg-blue-900 px-4 py-3 rounded-t-xl flex justify-between items-center cursor-pointer">
+        <div className="bg-blue-700 px-4 py-3 rounded-t-xl flex justify-between items-center cursor-pointer">
           <h3 className="text-sm font-bold text-white tracking-wide">New Message</h3>
           <div className="flex items-center gap-3">
             <button onClick={(e) => { e.stopPropagation(); setIsMaximized(!isMaximized); }} className="text-blue-200 hover:text-white transition-colors focus:outline-none" title={isMaximized ? "Dock to corner" : "Maximize"}>
