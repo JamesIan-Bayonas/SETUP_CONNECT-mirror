@@ -1,39 +1,47 @@
 import { useState, useEffect } from "react";
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'; 
 import { Head } from '@inertiajs/react';
-// Import your team's modal
-// Note: We go up one level (..) to 'Pages' then into 'Messages' where your modal lives
-import CreateMessageModal from '../Messages/CreateMessageModal';
 
+import CreateMessageModal from '../Messages/CreateMessageModal';
+// --- ADDED: Import the new View modal ---
+import ViewMessageModal, { MessageData } from '../Messages/ViewMessageModal';
+
+// --- MODIFIED: Expanded interface to include modal data ---
 interface Message {
   id: number;
   recipient: string;
   subject: string;
   date: string;
   isRead: boolean;
+  body: string;
+  attachment_name?: string;
 }
 
+// --- MODIFIED: Added realistic bodies and attachments to mock data ---
 const FAKE_MESSAGES: Message[] = [
-  { id: 1, recipient: "Sarah Johnson", subject: "Permit Application Inquiry – Follow-up on submitted documents", date: "2024-01-15 10:30 AM", isRead: true },
-  { id: 2, recipient: "Michael Brown", subject: "Missing Requirements – Attached updated files", date: "2024-01-15 09:45 AM", isRead: false },
-  { id: 3, recipient: "Jennifer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
-  { id: 4, recipient: "Jenni", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
-  { id: 5, recipient: "nifer Le", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
-  { id: 6, recipient: "ifer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
-  { id: 7, recipient: "Jennr Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
-  { id: 8, recipient: "Jennifer e", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
-  { id: 9, recipient: "Jeer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true },
-  { id: 10, recipient: "Jeer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: false },
-  { id: 11, recipient: "Jeer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: false },
+  { id: 1, recipient: "Sarah Johnson", subject: "Permit Application Inquiry – Follow-up on submitted documents", date: "2024-01-15 10:30 AM", isRead: true, body: "Good morning,\n\nI am following up on the documents I submitted last week. Please let me know if you need any additional requirements from my end.\n\nThank you,\nSarah", attachment_name: "Permit_App_v2.pdf" },
+  { id: 2, recipient: "Michael Brown", subject: "Missing Requirements – Attached updated files", date: "2024-01-15 09:45 AM", isRead: false, body: "Hello PSTO Team,\n\nAttached are the missing requirements you requested yesterday. Kindly confirm receipt.\n\nBest regards,\nMichael", attachment_name: "Updated_Financials.xlsx" },
+  { id: 3, recipient: "Jennifer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true, body: "Please be advised that the system will undergo scheduled maintenance this coming weekend. Expect intermittent downtimes.\n\n- System Admin" },
+  { id: 4, recipient: "Jenni", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true, body: "System maintenance notice." },
+  { id: 5, recipient: "nifer Le", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true, body: "System maintenance notice." },
+  { id: 6, recipient: "ifer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true, body: "System maintenance notice." },
+  { id: 7, recipient: "Jennr Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true, body: "System maintenance notice." },
+  { id: 8, recipient: "Jennifer e", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true, body: "System maintenance notice." },
+  { id: 9, recipient: "Jeer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true, body: "System maintenance notice." },
+  { id: 10, recipient: "Jeer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: false, body: "System maintenance notice." },
+  { id: 11, recipient: "Jeer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: false, body: "System maintenance notice." },
 ];
 
 export default function SetupMessageUI() {
-  const [messages] = useState<Message[]>(FAKE_MESSAGES);
+  const [messages, setMessages] = useState<Message[]>(FAKE_MESSAGES);
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState<"all" | "read" | "unread">("all");
   
-  // --- ADDED: State to control your Modal ---
+  // State for Modals
   const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  // --- ADDED: State for View Modal ---
+  const [selectedMessage, setSelectedMessage] = useState<MessageData | null>(null);
 
   const trimmedSearch = searchTerm.trim().toLowerCase();
 
@@ -86,15 +94,34 @@ export default function SetupMessageUI() {
     currentPage * itemsPerPage
   );
 
+  // --- ADDED: Handler to open a message in the view modal ---
+  const handleViewMessage = (msg: Message) => {
+    // Optional: Mark as read when clicked
+    if (!msg.isRead) {
+        setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, isRead: true } : m));
+    }
+
+    // Map your table data to the format the ViewModal expects
+    setSelectedMessage({
+        id: msg.id,
+        sender_name: msg.recipient, // Using recipient name as sender for demo purposes
+        sender_email: `${msg.recipient.split(' ')[0].toLowerCase()}@example.com`,
+        recipient_id: 1,
+        subject: msg.subject,
+        body: msg.body,
+        created_at: msg.date,
+        attachment_name: msg.attachment_name || null,
+    });
+  };
+
   return (
     <AuthenticatedLayout
         header={
             <div className="flex justify-between items-center">
                 <h2 className="font-semibold text-xl text-gray-800 leading-tight">Messages</h2>
-                {/* --- MODIFIED: Added onClick to trigger your modal --- */}
                 <button 
                     onClick={() => setIsModalOpen(true)}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg shadow-sm transition"
+                    className="bg-blue-700 hover:bg-blue-800 text-white font-medium py-2 px-4 rounded-lg shadow-sm transition"
                 >
                     + New Message
                 </button>
@@ -182,8 +209,13 @@ export default function SetupMessageUI() {
                           </span>
                         </td>
                         <td className="px-6 py-4 text-center text-sm space-x-4">
-                          <a href={`/messages/${msg.id}`} className="text-indigo-600 hover:text-indigo-800 hover:underline">View</a>
-                          <a href={`/messages/${msg.id}/edit`} className="text-indigo-600 hover:text-indigo-800 hover:underline">Edit</a>
+                          {/* --- MODIFIED: Changed from <a> to <button> --- */}
+                          <button 
+                            onClick={() => handleViewMessage(msg)} 
+                            className="text-indigo-600 hover:text-indigo-800 hover:underline font-medium"
+                          >
+                            View
+                          </button>
                           <button className="text-red-600 hover:text-red-800 hover:underline">Delete</button>
                         </td>
                       </tr>
@@ -211,10 +243,18 @@ export default function SetupMessageUI() {
         </div>
       </div>
 
-      {/* --- ADDED: Your Modal Component --- */}
       <CreateMessageModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
+      />
+
+      {/* The View Message Modal */}
+      <ViewMessageModal 
+        isOpen={selectedMessage !== null} 
+        onClose={() => setSelectedMessage(null)} 
+        message={selectedMessage}
+        // --- ADDED: The Magic Trick. If the create modal is open, tell this one to shift left ---
+        isShifted={isModalOpen} 
       />
 
     </AuthenticatedLayout>
