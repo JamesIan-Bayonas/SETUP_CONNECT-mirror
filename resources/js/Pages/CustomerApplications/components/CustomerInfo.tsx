@@ -12,10 +12,13 @@ interface CustomerInfoProps {
     inputClass: (field: keyof FormData) => string;
 }
 
-const capitalizeFirstLetter = (value: string): string => {
-  if (!value) return "";
-  return value.charAt(0).toUpperCase() + value.slice(1);
-};
+    const capitalizeFirstLetter = (value: string): string => {
+        if (!value) return "";
+        return value
+        .split(" ")
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
+    };
 
 
 const CustomerInfo: React.FC<CustomerInfoProps> = ({
