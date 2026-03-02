@@ -19,6 +19,14 @@ interface BusinessInfoProps {
     inputClass: (field: keyof FormData) => string;
 }
 
+    const capitalizeFirstLetter = (value: string): string => {
+        if (!value) return "";
+        return value
+        .split(" ")
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
+    };
+
 const BusinessInfo: React.FC<BusinessInfoProps> = ({
     formData,
     handleChange,
@@ -202,7 +210,7 @@ const BusinessInfo: React.FC<BusinessInfoProps> = ({
                     <input
                         type="text"
                         name="nameOfHeadOfAgency"
-                        value={formData.nameOfHeadOfAgency}
+                        value={capitalizeFirstLetter(formData.nameOfHeadOfAgency)}
                         onChange={handleChange}
                         placeholder="e.g. Dr. Jane Dela Cruz"
                         className={inputClass("nameOfHeadOfAgency")}
