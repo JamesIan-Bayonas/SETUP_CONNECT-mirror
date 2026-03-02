@@ -14,7 +14,8 @@ import {
   File,
   FileSpreadsheet,
   FileArchive,
-  FileCode
+  FileCode,
+  X // Added X icon for closing selection
 } from 'lucide-react';
 import CreateMessageModal from '../Messages/CreateMessageModal';
 
@@ -561,6 +562,34 @@ export default function SetupMessageUI() {
                 <PenSquare size={18} />
                 Compose 
               </button>
+
+              {/* Bulk Actions - Only show when messages are selected */}
+              {selectedIds.length > 0 && (
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => {
+                      // Archive selected messages
+                      setMessages(prev => prev.filter(m => !selectedIds.includes(m.id)));
+                      setSelectedIds([]);
+                    }}
+                    className="flex items-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-600 px-4 py-2 rounded-lg font-semibold text-sm transition-all border border-blue-200"
+                  >
+                    <Archive size={16} />
+                    Archive ({selectedIds.length})
+                  </button>
+                  <button 
+                    onClick={() => {
+                      // Delete selected messages
+                      setMessages(prev => prev.filter(m => !selectedIds.includes(m.id)));
+                      setSelectedIds([]);
+                    }}
+                    className="flex items-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 px-4 py-2 rounded-lg font-semibold text-sm transition-all border border-red-200"
+                  >
+                    <Trash2 size={16} />
+                    Delete ({selectedIds.length})
+                  </button>
+                </div>
+              )}
               
               {/* Filter Buttons - Full width on mobile */}
               <div className="flex bg-[#F3F4F6] p-1 rounded-lg w-full md:w-auto">
@@ -672,17 +701,6 @@ export default function SetupMessageUI() {
                               ${!msg.isRead ? "font-bold text-gray-900" : "text-gray-700"} whitespace-nowrap`}>
                               {formatMessageDate(msg.date)}
                             </div>
-                            {/* Delete and Archive buttons - only show when checkbox is selected */}
-                            {isSelected && (
-                              <div className="flex gap-1 mt-1">
-                                <button className="p-1 hover:bg-gray-200 rounded text-blue-600">
-                                  <Archive size={12} className="md:w-[14px] md:h-[14px]"/>
-                                </button>
-                                <button className="p-1 hover:bg-gray-200 rounded text-red-500">
-                                  <Trash2 size={12} className="md:w-[14px] md:h-[14px]"/>
-                                </button>
-                              </div>
-                            )}
                           </div>
                         </div>
                       </div>
