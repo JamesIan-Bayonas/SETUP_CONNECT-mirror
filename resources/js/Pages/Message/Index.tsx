@@ -672,17 +672,15 @@ export default function SetupMessageUI() {
                               ${!msg.isRead ? "font-bold text-gray-900" : "text-gray-700"} whitespace-nowrap`}>
                               {formatMessageDate(msg.date)}
                             </div>
-                            {/* Delete and Archive buttons - only show when checkbox is selected */}
-                            {isSelected && (
-                              <div className="flex gap-1 mt-1">
-                                <button className="p-1 hover:bg-gray-200 rounded text-blue-600">
-                                  <Archive size={12} className="md:w-[14px] md:h-[14px]"/>
-                                </button>
-                                <button className="p-1 hover:bg-gray-200 rounded text-red-500">
-                                  <Trash2 size={12} className="md:w-[14px] md:h-[14px]"/>
-                                </button>
-                              </div>
-                            )}
+                            {/* Delete and Archive buttons - show on hover */}
+                            <div className="flex gap-1 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button className="p-1 hover:bg-gray-200 rounded text-blue-600">
+                                <Archive size={12} className="md:w-[14px] md:h-[14px]"/>
+                              </button>
+                              <button className="p-1 hover:bg-gray-200 rounded text-red-500">
+                                <Trash2 size={12} className="md:w-[14px] md:h-[14px]"/>
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </div>
