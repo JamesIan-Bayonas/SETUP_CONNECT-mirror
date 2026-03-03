@@ -96,10 +96,10 @@ const getFileBadgeStyle = (type: string) => {
       };
     case 'archive':
       return {
-        bg: 'bg-yellow-50',
-        text: 'text-yellow-700',
-        border: 'border-yellow-200',
-        icon: <FileArchive size={12} className="text-yellow-500" />,
+        bg: 'bg-cyan-50',
+        text: 'text-cyan-700',
+        border: 'border-cyan-200',
+        icon: <FileArchive size={12} className="text-cyan-500" />,
       };
     case 'code':
       return {
@@ -457,6 +457,18 @@ const FAKE_MESSAGES: Message[] = [
     ],
     body: "Training schedule has been adjusted for the upcoming match. Please review the attached document for the new times."
   },
+    { 
+    id: 31, 
+    recipient: "Jeer Lee", 
+    subject: "Holiday Schedule Update", 
+    date: "2024-01-20 01:20 PM", 
+    isRead: false,
+    hasAttachments: true,
+    attachments: [
+      { name: "schedule.pdf", size: "1.1 MB", type: "pdf" }
+    ],
+    body: "Please review the updated holiday schedule for Q2 attached. We've made some changes to accommodate the new company events."
+  }
 ];
 
 // --- DATE HELPER FUNCTION ---
@@ -476,6 +488,37 @@ const formatMessageDate = (dateString: string) => {
   }
 };
 
+// 🔥 Group messages by recipient (Messenger-style conversation list)
+const groupMessagesByRecipient = (messages: Message[]) => {
+  const grouped: Record<string, Message[]> = {};
+
+  messages.forEach((msg) => {
+    if (!grouped[msg.recipient]) {
+      grouped[msg.recipient] = [];
+    }
+    grouped[msg.recipient].push(msg);
+  });
+
+  // Convert to conversation summary (1 per recipient)
+  return Object.keys(grouped).map((recipient) => {
+    const conversation = grouped[recipient];
+
+    // Sort by newest first
+    const sorted = [...conversation].sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+
+    const latestMessage = sorted[0];
+    const unreadCount = conversation.filter((m) => !m.isRead).length;
+
+    return {
+      ...latestMessage,
+      unreadCount,
+      conversation, // keep full thread if needed later
+    };
+  });
+};
+
 export default function SetupMessageUI() {
   const [messages, setMessages] = useState<Message[]>(FAKE_MESSAGES);
   const [searchTerm, setSearchTerm] = useState("");
@@ -489,18 +532,34 @@ export default function SetupMessageUI() {
     setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
   };
 
-  const handleViewMessage = (id: number) => {
-    setMessages(prev => prev.map(m => m.id === id ? { ...m, isRead: true } : m));
-  };
+  const handleViewMessage = (recipient: string) => {
+  setMessages(prev =>
+    prev.map(m =>
+      m.recipient === recipient
+        ? { ...m, isRead: true }
+        : m
+    )
+  );
+};
 
-  const filteredMessages = messages.filter((msg) => {
-    const matchesSearch = !searchTerm || 
-      msg.recipient.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      msg.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      msg.body.toLowerCase().includes(searchTerm.toLowerCase()); 
-    const matchesFilter = filter === "all" || (filter === "read" && msg.isRead) || (filter === "unread" && !msg.isRead);
-    return matchesSearch && matchesFilter;
-  });
+  // 1️⃣ First filter normally
+const filteredMessagesRaw = messages.filter((msg) => {
+  const matchesSearch =
+    !searchTerm ||
+    msg.recipient.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    msg.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    msg.body.toLowerCase().includes(searchTerm.toLowerCase());
+
+  const matchesFilter =
+    filter === "all" ||
+    (filter === "read" && msg.isRead) ||
+    (filter === "unread" && !msg.isRead);
+
+  return matchesSearch && matchesFilter;
+});
+
+// 2️⃣ Then group by recipient
+const filteredMessages = groupMessagesByRecipient(filteredMessagesRaw);
 
   const totalResults = filteredMessages.length;
   const totalPages = Math.ceil(totalResults / itemsPerPage);
@@ -606,7 +665,7 @@ export default function SetupMessageUI() {
                   return (
                     <div 
                       key={msg.id}
-                      onClick={() => handleViewMessage(msg.id)}
+                      onClick={() => handleViewMessage(msg.recipient)}
                       className={`flex items-start gap-3 p-3 md:p-4 rounded-xl transition-all duration-200 cursor-pointer border-b border-gray-100 relative group
                         ${isSelected 
                           ? "bg-[#DDE0FF] border-indigo-200 shadow-sm" 
@@ -634,16 +693,35 @@ export default function SetupMessageUI() {
                         </div>
                         <div className="col-span-10 md:col-span-7 flex flex-col">
                           <div className="flex items-baseline gap-2 overflow-hidden">
-                            <span className={`text-xs md:text-sm whitespace-nowrap ${!msg.isRead ? "font-bold text-black" : "font-semibold text-gray-800"}`}>
-                              <HighlightText text={msg.subject} highlight={searchTerm} />
-                            </span>
-                            <span className="text-gray-500 text-[10px] md:text-xs truncate">
-                              - <HighlightText text={msg.body.substring(0, 60)} highlight={searchTerm} />
-                            </span>
-                          </div>
+
+                              {/* If 2 or more unread → show ONLY badge */}
+                              {msg.unreadCount >= 2 ? (
+                                <span className="ml-2 text-[10px] md:text-xs font-bold text-yellow-600 bg-yellow-100 px-2 py-0.5 rounded-full whitespace-nowrap">
+                                  {msg.unreadCount} new messages
+                                </span>
+                              ) : (
+                                <>
+                                  {/* Show subject normally */}
+                                  <span className={`text-xs md:text-sm whitespace-nowrap ${!msg.isRead ? "font-bold text-black" : "font-semibold text-gray-800"}`}>
+                                    <HighlightText text={msg.subject} highlight={searchTerm} />
+                                  </span>
+
+                                  {/* If 0 unread → show preview */}
+                                  {msg.unreadCount === 0 && (
+                                    <span className="text-gray-500 text-[10px] md:text-xs truncate">
+                                      - <HighlightText text={msg.body.substring(0, 60)} highlight={searchTerm} />
+                                    </span>
+                                  )}
+                                </>
+                              )}
+
+                            </div>
                             
                             {/* Attachment Badges */}
-                            {msg.hasAttachments && msg.attachments && msg.attachments.length > 0 && (
+                              {msg.unreadCount < 2 &&
+                              msg.hasAttachments &&
+                              msg.attachments &&
+                              msg.attachments.length > 0 && (
                               <div className="flex items-center gap-1 mt-1 overflow-x-auto pb-1 scrollbar-hide">
                                 {msg.attachments.slice(0, 3).map((att, idx) => {
                                   const style = getFileBadgeStyle(att.type);
