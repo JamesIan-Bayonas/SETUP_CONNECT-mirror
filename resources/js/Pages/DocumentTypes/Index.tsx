@@ -32,9 +32,12 @@ export default function Index({ documentTypes }: Props) {
                     </h2>
                     <Link
                         href="/document-types/create"
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded"
+                        className="inline-flex items-center gap-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded"
                     >
-                        Create Document Type
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Document Type
                     </Link>
                 </div>
             }
