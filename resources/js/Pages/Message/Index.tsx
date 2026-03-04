@@ -195,18 +195,7 @@ export default function SetupMessageUI() {
       return FAKE_MESSAGES;
     }
   });
-  // track whether the inbox has been opened before in this browser
-  // track whether the inbox has been visited in the current browser tab
-  // (sessionStorage is cleared when the tab is closed). we don't want a
-  // persistent flag that survives browser restarts, because the user asked
-  // to see the total again when the app is opened fresh.
-  const [hasVisited, setHasVisited] = useState<boolean>(() => {
-    try {
-      return !!sessionStorage.getItem('inbox_seen_session');
-    } catch {
-      return false;
-    }
-  });
+  // track state locally only — we no longer auto-mark messages read on mount
 
   // Note: removed the development `resetInbox` helper to keep inbox state
   // persistent. Use the UI actions to toggle read/unread states instead.
@@ -281,23 +270,7 @@ export default function SetupMessageUI() {
     }
   }, [messages]);
 
-  // when the component mounts, check the session flag. if the inbox has
-  // already been visited in this tab, immediately mark everything as read
-  // (so the header shows 0). on a brand-new tab the flag doesn't exist yet
-  // and we only write it without changing read state.
-  useEffect(() => {
-    try {
-      const seen = sessionStorage.getItem('inbox_seen_session');
-      if (seen) {
-        markAllAsRead();
-      } else {
-        sessionStorage.setItem('inbox_seen_session', 'true');
-        // hasVisited remains false until we actually mark read
-      }
-    } catch {
-      // ignore
-    }
-  }, []);
+  // No automatic marking on mount — messages remain in their saved read/unread mix.
 
   // Expose an explicit action to mark all messages read (user-initiated)
   const markAllAsRead = () => {
@@ -311,12 +284,7 @@ export default function SetupMessageUI() {
         // ignore
       }
 
-      try {
-        sessionStorage.setItem('inbox_seen_session', 'true');
-        setHasVisited(true);
-      } catch (e) {
-        // ignore storage errors
-      }
+      // intentionally do not set session flags; keep read state explicit only
 
       return newMessages;
     });
@@ -334,13 +302,7 @@ export default function SetupMessageUI() {
         // ignore
       }
 
-      try {
-        // when marking unread, clear the session seen flag so header shows total again
-        sessionStorage.removeItem('inbox_seen_session');
-        setHasVisited(false);
-      } catch (e) {
-        // ignore
-      }
+      // intentionally do not touch sessionStorage
 
       return newMessages;
     });
@@ -356,7 +318,7 @@ export default function SetupMessageUI() {
             {/* HEADER */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
               <h1 className="text-2xl font-bold text-gray-900">
-                Inbox <span className="text-gray-400 font-medium">({hasVisited ? unreadCount : allCount})</span>
+                Inbox <span className="text-gray-400 font-medium">({unreadCount})</span>
               </h1>
 
               {/* ACTIVE + SEARCH BAR */}
@@ -471,7 +433,7 @@ export default function SetupMessageUI() {
                             </div>
 
                             {msg.unreadCount < 2 && msg.hasAttachments && msg.attachments && msg.attachments.length > 0 && (
-                              <div className="flex items-center gap-1 mt-1 overflow-x-auto pb-1 scrollbar-hide">
+                              <div onClick={(e) => e.stopPropagation()} className="flex items-center gap-1 mt-1 overflow-x-auto pb-1 scrollbar-hide">
                                 {msg.attachments.slice(0, 3).map((att, idx) => {
                                   const style = getFileBadgeStyle(att.type);
                                   return (
@@ -496,8 +458,8 @@ export default function SetupMessageUI() {
                             <div className={`text-[9px] md:text-[10px] ${!msg.isRead ? 'font-bold text-gray-900' : 'text-gray-700'} whitespace-nowrap`}>{formatMessageDate(msg.date)}</div>
 
                             <div className="flex gap-1 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <button className="p-1 hover:bg-gray-200 rounded text-blue-600"><Archive size={12} className="md:w-[14px] md:h-[14px]" /></button>
-                              <button className="p-1 hover:bg-gray-200 rounded text-red-500"><Trash2 size={12} className="md:w-[14px] md:h-[14px]" /></button>
+                              <button onClick={(e) => e.stopPropagation()} className="p-1 hover:bg-gray-200 rounded text-blue-600"><Archive size={12} className="md:w-[14px] md:h-[14px]" /></button>
+                              <button onClick={(e) => e.stopPropagation()} className="p-1 hover:bg-gray-200 rounded text-red-500"><Trash2 size={12} className="md:w-[14px] md:h-[14px]" /></button>
                             </div>
                           </div>
                         </div>
