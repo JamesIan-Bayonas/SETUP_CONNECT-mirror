@@ -221,12 +221,17 @@ export default function SetupMessageUI() {
     setSelectedIds((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]));
   };
 
-  // Toggle a single message's read state and emit an event with the new state
+  // Clicking an unread message will mark it read. Clicking a read message does nothing.
   const handleViewMessage = (id: number) => {
     setMessages((prev) => {
-      const newMessages = prev.map((m) => (m.id === id ? { ...m, isRead: !m.isRead } : m));
+      const newMessages = prev.map((m) => {
+        if (m.id === id && !m.isRead) {
+          return { ...m, isRead: true };
+        }
+        return m;
+      });
       try {
-        const changed = newMessages.find((m) => m.id === id);
+        const changed = newMessages.find((m) => m.id === id && m.isRead);
         if (typeof window !== 'undefined' && changed) {
           window.dispatchEvent(new CustomEvent('message:read-status-changed', { detail: { id: changed.id, isRead: changed.isRead } }));
         }
