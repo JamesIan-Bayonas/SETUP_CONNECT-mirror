@@ -14,7 +14,9 @@ import {
   File,
   FileSpreadsheet,
   FileArchive,
-  FileCode
+  FileCode,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import CreateMessageModal from '../Messages/CreateMessageModal';
 
@@ -235,6 +237,31 @@ export default function SetupMessageUI() {
       });
       try {
         const changed = newMessages.find((m) => m.id === id && m.isRead);
+        if (typeof window !== 'undefined' && changed) {
+          window.dispatchEvent(new CustomEvent('message:read-status-changed', { detail: { id: changed.id, isRead: changed.isRead } }));
+        }
+      } catch (e) {
+        // ignore dispatch errors
+      }
+      return newMessages;
+    });
+  };
+
+  // Toggle message read/unread status
+  const toggleMessageReadStatus = (id: number) => {
+    setSuppressHeaderCount(false);
+    try {
+      sessionStorage.setItem('inbox_modified', 'true');
+    } catch {}
+    setMessages((prev) => {
+      const newMessages = prev.map((m) => {
+        if (m.id === id) {
+          return { ...m, isRead: !m.isRead };
+        }
+        return m;
+      });
+      try {
+        const changed = newMessages.find((m) => m.id === id);
         if (typeof window !== 'undefined' && changed) {
           window.dispatchEvent(new CustomEvent('message:read-status-changed', { detail: { id: changed.id, isRead: changed.isRead } }));
         }
@@ -499,6 +526,7 @@ export default function SetupMessageUI() {
                             <div className={`text-[9px] md:text-[10px] ${!msg.isRead ? 'font-bold text-gray-900' : 'text-gray-700'} whitespace-nowrap`}>{formatMessageDate(msg.date)}</div>
 
                             <div className="flex gap-1 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button onClick={(e) => { e.stopPropagation(); toggleMessageReadStatus(msg.id); }} className="p-1 hover:bg-gray-200 rounded text-gray-600" title={msg.isRead ? "Mark as unread" : "Mark as read"}>{msg.isRead ? <EyeOff size={12} className="md:w-[14px] md:h-[14px]" /> : <Eye size={12} className="md:w-[14px] md:h-[14px]" />}</button>
                               <button onClick={(e) => e.stopPropagation()} className="p-1 hover:bg-gray-200 rounded text-blue-600"><Archive size={12} className="md:w-[14px] md:h-[14px]" /></button>
                               <button onClick={(e) => e.stopPropagation()} className="p-1 hover:bg-gray-200 rounded text-red-500"><Trash2 size={12} className="md:w-[14px] md:h-[14px]" /></button>
                             </div>
