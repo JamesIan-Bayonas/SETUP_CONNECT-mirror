@@ -208,21 +208,8 @@ export default function SetupMessageUI() {
     }
   });
 
-  // helper used during development or for user testing. clears the session
-  // flag so the inbox acts like a first visit again. does *not* clear
-  // stored messages by default, but you can uncomment the line below if
-  // you also want to reset unread state.
-  const resetInbox = () => {
-    try {
-      sessionStorage.removeItem('inbox_seen_session');
-      setHasVisited(false);
-      // if you'd like to revert message read statuses as well, uncomment:
-      // localStorage.removeItem('inbox_messages_v1');
-      setMessages(FAKE_MESSAGES);
-    } catch {
-      // ignore
-    }
-  };
+  // Note: removed the development `resetInbox` helper to keep inbox state
+  // persistent. Use the UI actions to toggle read/unread states instead.
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState<"all" | "read" | "unread">("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -234,9 +221,20 @@ export default function SetupMessageUI() {
     setSelectedIds((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]));
   };
 
-  // mark a single message as read by id
+  // Toggle a single message's read state and emit an event with the new state
   const handleViewMessage = (id: number) => {
-    setMessages((prev) => prev.map((m) => (m.id === id ? { ...m, isRead: true } : m)));
+    setMessages((prev) => {
+      const newMessages = prev.map((m) => (m.id === id ? { ...m, isRead: !m.isRead } : m));
+      try {
+        const changed = newMessages.find((m) => m.id === id);
+        if (typeof window !== 'undefined' && changed) {
+          window.dispatchEvent(new CustomEvent('message:read-status-changed', { detail: { id: changed.id, isRead: changed.isRead } }));
+        }
+      } catch (e) {
+        // ignore dispatch errors
+      }
+      return newMessages;
+    });
   };
 
   // 1️⃣ First filter normally
@@ -298,13 +296,49 @@ export default function SetupMessageUI() {
 
   // Expose an explicit action to mark all messages read (user-initiated)
   const markAllAsRead = () => {
-    setMessages((prev) => prev.map((m) => ({ ...m, isRead: true })));
-    try {
-      sessionStorage.setItem('inbox_seen_session', 'true');
-      setHasVisited(true);
-    } catch (e) {
-      // ignore storage errors
-    }
+    setMessages((prev) => {
+      const newMessages = prev.map((m) => ({ ...m, isRead: true }));
+      try {
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('message:all-read-status-changed', { detail: { allRead: true, ids: newMessages.map((m) => m.id) } }));
+        }
+      } catch (e) {
+        // ignore
+      }
+
+      try {
+        sessionStorage.setItem('inbox_seen_session', 'true');
+        setHasVisited(true);
+      } catch (e) {
+        // ignore storage errors
+      }
+
+      return newMessages;
+    });
+  };
+
+  // Expose an action to mark all messages unread (user-initiated)
+  const markAllAsUnread = () => {
+    setMessages((prev) => {
+      const newMessages = prev.map((m) => ({ ...m, isRead: false }));
+      try {
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('message:all-read-status-changed', { detail: { allRead: false, ids: newMessages.map((m) => m.id) } }));
+        }
+      } catch (e) {
+        // ignore
+      }
+
+      try {
+        // when marking unread, clear the session seen flag so header shows total again
+        sessionStorage.removeItem('inbox_seen_session');
+        setHasVisited(false);
+      } catch (e) {
+        // ignore
+      }
+
+      return newMessages;
+    });
   };
 
   return (
@@ -358,18 +392,12 @@ export default function SetupMessageUI() {
                 </button>
 
                 <button
-                  onClick={markAllAsRead}
+                  onClick={unreadCount === 0 ? markAllAsUnread : markAllAsRead}
                   className="flex items-center gap-2 border border-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm hover:bg-gray-50"
                 >
-                  Mark all read
+                  {unreadCount === 0 ? 'Mark all unread' : 'Mark all read'}
                 </button>
-
-                <button
-                  onClick={resetInbox}
-                  className="flex items-center gap-1 text-xs text-red-500 hover:underline"
-                >
-                  Reset
-                </button>
+                
               </div>
 
               {/* Filter Buttons - Full width on mobile */}
