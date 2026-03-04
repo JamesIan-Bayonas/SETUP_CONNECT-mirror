@@ -187,9 +187,12 @@ const groupMessagesByRecipient = (messages: Message[]) => {
 };
 
 export default function SetupMessageUI() {
+  // Keep messages session-scoped (per-tab). Read from `sessionStorage`
+  // if available so changes persist while the tab is open, but are cleared
+  // when the tab/browser is closed.
   const [messages, setMessages] = useState<Message[]>(() => {
     try {
-      const raw = localStorage.getItem('inbox_messages_v1');
+      const raw = sessionStorage.getItem('inbox_messages_v1');
       return raw ? (JSON.parse(raw) as Message[]) : FAKE_MESSAGES;
     } catch (e) {
       return FAKE_MESSAGES;
@@ -203,6 +206,11 @@ export default function SetupMessageUI() {
   const [filter, setFilter] = useState<"all" | "read" | "unread">("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  // When the user returns to the inbox in the same tab, we may want the
+  // header to show 0 (so it appears 'seen') while keeping messages' actual
+  // `isRead` flags unchanged. This state suppresses the header unread
+  // indicator until the user interacts (clicks a message or uses actions).
+  const [suppressHeaderCount, setSuppressHeaderCount] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -212,6 +220,12 @@ export default function SetupMessageUI() {
 
   // Clicking an unread message will mark it read. Clicking a read message does nothing.
   const handleViewMessage = (id: number) => {
+    // once the user views a message, reveal the actual unread counts
+    // (stop suppressing the header count)
+    setSuppressHeaderCount(false);
+    try {
+      sessionStorage.setItem('inbox_modified', 'true');
+    } catch {}
     setMessages((prev) => {
       const newMessages = prev.map((m) => {
         if (m.id === id && !m.isRead) {
@@ -261,16 +275,35 @@ export default function SetupMessageUI() {
     setCurrentPage(1);
   }, [filter, searchTerm]);
 
-  // Persist messages to localStorage whenever they change
+  // Persist messages to sessionStorage so state is kept while the tab is open.
   useEffect(() => {
     try {
-      localStorage.setItem('inbox_messages_v1', JSON.stringify(messages));
+      sessionStorage.setItem('inbox_messages_v1', JSON.stringify(messages));
     } catch (e) {
-      // ignore storage errors
+      // ignore
     }
   }, [messages]);
 
   // No automatic marking on mount — messages remain in their saved read/unread mix.
+  // However, use a session-only flag so that if the user returns to the
+  // inbox within the same browser tab (navigates away then back), the inbox
+  // will be auto-marked as read on the second visit. Because messages are
+  // in-memory only, closing the tab/browser resets unread counts to the
+  // original `FAKE_MESSAGES` values.
+  useEffect(() => {
+    try {
+      const seen = sessionStorage.getItem('inbox_seen_session');
+      if (seen) {
+        // On revisit within the same tab, always suppress the header count
+        // so the inbox appears 'seen' (shows 0) until the user interacts.
+        setSuppressHeaderCount(true);
+      } else {
+        sessionStorage.setItem('inbox_seen_session', 'true');
+      }
+    } catch (e) {
+      // ignore sessionStorage errors
+    }
+  }, []);
 
   // Expose an explicit action to mark all messages read (user-initiated)
   const markAllAsRead = () => {
@@ -284,7 +317,11 @@ export default function SetupMessageUI() {
         // ignore
       }
 
-      // intentionally do not set session flags; keep read state explicit only
+      // reveal counts when user triggers this action
+      setSuppressHeaderCount(false);
+      try {
+        sessionStorage.setItem('inbox_modified', 'true');
+      } catch {}
 
       return newMessages;
     });
@@ -302,7 +339,11 @@ export default function SetupMessageUI() {
         // ignore
       }
 
-      // intentionally do not touch sessionStorage
+      // reveal counts when user triggers this action
+      setSuppressHeaderCount(false);
+      try {
+        sessionStorage.setItem('inbox_modified', 'true');
+      } catch {}
 
       return newMessages;
     });
@@ -318,7 +359,7 @@ export default function SetupMessageUI() {
             {/* HEADER */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
               <h1 className="text-2xl font-bold text-gray-900">
-                Inbox <span className="text-gray-400 font-medium">({unreadCount})</span>
+                Inbox <span className="text-gray-400 font-medium">({suppressHeaderCount ? 0 : unreadCount})</span>
               </h1>
 
               {/* ACTIVE + SEARCH BAR */}
