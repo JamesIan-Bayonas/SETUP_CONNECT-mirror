@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
 import { 
@@ -7,6 +7,9 @@ import {
   Archive, 
   ChevronLeft,  
   ChevronRight,
+  ChevronDown,  
+  RefreshCw,     
+  MoreVertical,
   PenSquare,
   Paperclip,
   FileText,
@@ -167,7 +170,7 @@ const formatMessageDate = (dateString: string) => {
   }
 };
 
-// 🔥 Group messages by recipient (Messenger-style conversation list)
+//  Group messages by recipient (Messenger-style conversation list)
 const groupMessagesByRecipient = (messages: Message[]) => {
   const grouped: Record<string, Message[]> = {};
 
@@ -217,9 +220,54 @@ export default function SetupMessageUI() {
   const [suppressHeaderCount, setSuppressHeaderCount] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const [isSelectDropdownOpen, setIsSelectDropdownOpen] = useState(false);
+  const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
+  const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
+  const [isMoreDropdownOpen, setIsMoreDropdownOpen] = useState(false);
+
+  const toolbarRef = useRef<HTMLDivElement>(null);
+  const selectRef = useRef<HTMLDivElement>(null);
+  const moreRef = useRef<HTMLDivElement>(null);
+  const sortRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (selectRef.current && !selectRef.current.contains(event.target as Node)) {
+        setIsSelectDropdownOpen(false);
+      }
+      if (moreRef.current && !moreRef.current.contains(event.target as Node)) {
+        setIsMoreDropdownOpen(false);
+      }
+      if (sortRef.current && !sortRef.current.contains(event.target as Node)) {
+        setIsSortDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const toggleSelect = (id: number) => {
     setSelectedIds((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]));
+  };
+  const handleSelectMenu = (type: 'all' | 'none' | 'read' | 'unread') => {
+    const visibleIds = paginatedMessages.map((m) => m.id);
+    let newSelected = [...selectedIds];
+
+    if (type === 'all') {
+      newSelected = Array.from(new Set([...selectedIds, ...visibleIds]));
+    } else if (type === 'none') {
+      newSelected = selectedIds.filter((id) => !visibleIds.includes(id));
+    } else if (type === 'read') {
+      const readIds = paginatedMessages.filter((m) => m.isRead).map((m) => m.id);
+      newSelected = Array.from(new Set([...selectedIds.filter((id) => !visibleIds.includes(id)), ...readIds]));
+    } else if (type === 'unread') {
+      const unreadIds = paginatedMessages.filter((m) => !m.isRead).map((m) => m.id);
+      newSelected = Array.from(new Set([...selectedIds.filter((id) => !visibleIds.includes(id)), ...unreadIds]));
+    }
+    
+    setSelectedIds(newSelected);
+    setIsSelectDropdownOpen(false);
   };
 
   // Clicking an unread message will mark it read. Clicking a read message does nothing.
@@ -276,19 +324,21 @@ export default function SetupMessageUI() {
 
   // 1️⃣ First filter normally
   const filteredMessagesRaw = messages.filter((msg) => {
-    const matchesSearch =
-      !searchTerm ||
-      msg.recipient.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      msg.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      msg.body.toLowerCase().includes(searchTerm.toLowerCase());
-
+    // ... (keep your existing search/filter logic here)
+    const matchesSearch = !searchTerm || msg.recipient.toLowerCase().includes(searchTerm.toLowerCase()) || msg.subject.toLowerCase().includes(searchTerm.toLowerCase()) || msg.body.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filter === 'all' || (filter === 'read' && msg.isRead) || (filter === 'unread' && !msg.isRead);
-
     return matchesSearch && matchesFilter;
   });
 
-  // 2️⃣ Then group by recipient
-  const filteredMessages = groupMessagesByRecipient(filteredMessagesRaw as Message[]);
+  // 2️⃣ Group by recipient
+  const groupedMessages = groupMessagesByRecipient(filteredMessagesRaw as Message[]);
+
+  // 3️⃣ 🟢 Sort the grouped messages by date based on the dropdown selection
+  const filteredMessages = [...groupedMessages].sort((a, b) => {
+    const dateA = new Date(a.date).getTime();
+    const dateB = new Date(b.date).getTime();
+    return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+  });
 
   const totalResults = filteredMessages.length;
   // (removed inboxCount) header should show unread count instead
@@ -429,13 +479,6 @@ export default function SetupMessageUI() {
                   Compose
                 </button>
 
-                <button
-                  onClick={unreadCount === 0 ? markAllAsUnread : markAllAsRead}
-                  className="flex items-center gap-2 border border-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm hover:bg-gray-50"
-                >
-                  {unreadCount === 0 ? 'Mark all unread' : 'Mark all read'}
-                </button>
-                
               </div>
 
               {/* Filter Buttons - Full width on mobile */}
@@ -462,10 +505,185 @@ export default function SetupMessageUI() {
               </div>
             </div>
 
-            {/* MESSAGE LIST CONTAINER */}
-            <div className="relative border-t border-gray-100">
+           {/* MESSAGE LIST CONTAINER */}
+            <div className="relative border-t border-gray-100 mt-2 pt-2">
+              
+            {/* GMAIL-STYLE TOOLBAR */}
+              <div ref={toolbarRef} className="flex items-center justify-between px-2 pb-3 mb-1 border-b border-gray-100">
+                
+                {/* 👈 LEFT SIDE: Selection, Refresh, More */}
+                <div className="flex items-center gap-1 md:gap-3">
+                  
+                  {/* Select All Checkbox + Dropdown */}
+                  <div className="relative flex items-center" ref={selectRef}>
+                   <div className="flex items-center hover:bg-gray-100 rounded px-1 py-1 transition-colors">
+                      <input 
+                        type="checkbox" 
+                        className="w-4 h-4 ml-1 rounded border-gray-300 text-[#5156E5] focus:ring-[#5156E5] cursor-pointer" 
+                        onChange={(e) => e.target.checked ? handleSelectMenu('all') : handleSelectMenu('none')}
+                        checked={paginatedMessages.length > 0 && paginatedMessages.every(m => selectedIds.includes(m.id))}
+                      />
+                      <button 
+                        onClick={() => {
+                          setIsSelectDropdownOpen(!isSelectDropdownOpen);
+                          setIsMoreDropdownOpen(false);
+                          setIsSortDropdownOpen(false);
+                        }}
+                        className="p-1 cursor-pointer"
+                      >
+                        <ChevronDown size={16} className="text-gray-500" />
+                      </button>
+                    </div>
+
+                    {/* Selection Dropdown Menu */}
+                    {isSelectDropdownOpen && (
+                      <div className="absolute top-full left-0 mt-1 w-32 bg-white border border-gray-100 rounded shadow-lg z-50 py-1">
+                        <button onClick={() => handleSelectMenu('all')} className="w-full text-left px-4 py-1.5 text-sm text-gray-700 hover:bg-gray-100">All</button>
+                        <button onClick={() => handleSelectMenu('read')} className="w-full text-left px-4 py-1.5 text-sm text-gray-700 hover:bg-gray-100">Read</button>
+                        <button onClick={() => handleSelectMenu('unread')} className="w-full text-left px-4 py-1.5 text-sm text-gray-700 hover:bg-gray-100">Unread</button>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Refresh Button */}
+                  <button className="p-2 hover:bg-gray-100 rounded-full text-gray-600 transition-colors" title="Refresh">
+                    <RefreshCw size={18} />
+                  </button>
+                  
+                  {/* More Options Dropdown */}
+                  <div className="relative" ref={moreRef}>
+                    <button 
+                      onClick={() => {
+                        setIsMoreDropdownOpen(!isMoreDropdownOpen);
+                        setIsSelectDropdownOpen(false);
+                        setIsSortDropdownOpen(false);
+                      }}
+                      className="p-2 hover:bg-gray-100 rounded-full text-gray-600 transition-colors" 
+                      title="More"
+                    >
+                      <MoreVertical size={18} />
+                    </button>
+
+                    {/* Dropdown Menu */}
+                    {isMoreDropdownOpen && (
+                      <div className="absolute top-full left-0 mt-1 w-56 bg-white border border-gray-100 rounded shadow-lg z-50 py-1">
+                        <button 
+                          onClick={() => { markAllAsRead(); setIsMoreDropdownOpen(false); }}
+                          className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                        >
+                          <MailOpen size={16} className="text-gray-500" />
+                          Mark all as read
+                        </button>
+
+                        <div className="border-t border-gray-100 my-1"></div>
+
+                        {selectedIds.length === 0 ? (
+                          <div className="px-4 py-2 text-sm text-gray-400 italic">Select messages to see more actions</div>
+                        ) : (
+                          <>
+                            <button 
+                              onClick={() => {
+                                setMessages(prev => prev.map(m => selectedIds.includes(m.id) ? { ...m, isRead: true } : m));
+                                setIsMoreDropdownOpen(false);
+                              }} 
+                              className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            >
+                              Mark as read
+                            </button>
+                            <button 
+                              onClick={() => {
+                                setMessages(prev => prev.map(m => selectedIds.includes(m.id) ? { ...m, isRead: false } : m));
+                                setIsMoreDropdownOpen(false);
+                              }} 
+                              className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            >
+                              Mark as unread
+                            </button>
+                            <button 
+                              onClick={() => {
+                                setMessages(prev => prev.filter(m => !selectedIds.includes(m.id)));
+                                setSelectedIds([]);
+                                setIsMoreDropdownOpen(false);
+                              }} 
+                              className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                            >
+                              Delete selected
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/*  RIGHT SIDE: Pagination */}
+                <div className="flex items-center gap-2 md:gap-4 text-xs md:text-xs text-gray-600">
+                  
+                  {/* Pagination Stats + Sort Dropdown */}
+                  <div className="relative" ref={sortRef}>
+                  <button 
+                    onClick={() => {
+                        setIsSortDropdownOpen(!isSortDropdownOpen);
+                        setIsSelectDropdownOpen(false);
+                        setIsMoreDropdownOpen(false);
+                      }}
+                      className="flex items-center gap-1 hover:bg-gray-100 px-2 py-1 rounded cursor-pointer transition-colors"
+                    >
+                      <span>{totalResults > 0 ? `${startIndex + 1}–${endIndex} of ${totalResults}` : '0 results'}</span>
+                      <ChevronDown size={14} className="text-gray-500" />
+                    </button>
+
+                    {/* Sort Dropdown Menu */}
+                    {isSortDropdownOpen && (
+                    <div className="absolute top-full right-0 mt-1 w-28 bg-white border border-gray-100 rounded shadow-lg z-50 py-1">
+                    <button 
+                    disabled={sortOrder === 'newest'}
+                      onClick={() => { setSortOrder('newest'); setIsSortDropdownOpen(false); }}
+                      className={`w-full text-left px-4 py-1.5 text-sm transition-colors ${
+                        sortOrder === 'newest' 
+                          ? 'text-gray-300 cursor-default' 
+                          : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                     Newest
+                    </button>
+                    <button 
+                      disabled={sortOrder === 'oldest'}
+                      onClick={() => { setSortOrder('oldest'); setIsSortDropdownOpen(false); }}
+                      className={`w-full text-left px-4 py-1.5 text-sm transition-colors ${
+                        sortOrder === 'oldest' 
+                          ? 'text-gray-300 cursor-default' 
+                          : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                      Oldest
+                    </button>
+                  </div>
+                )}
+                  </div>
+
+                  {/* Left/Right Arrows */}
+                  <div className="flex gap-1">
+                    <button 
+                      disabled={currentPage === 1} 
+                      onClick={() => setCurrentPage((prev) => prev - 1)} 
+                      className="p-2 rounded-full hover:bg-gray-100 disabled:opacity-40 transition-colors"
+                    >
+                      <ChevronLeft size={18} className="text-gray-700" />
+                    </button>
+                    <button 
+                      disabled={currentPage === totalPages || totalPages === 0} 
+                      onClick={() => setCurrentPage((prev) => prev + 1)} 
+                      className="p-2 rounded-full hover:bg-gray-100 disabled:opacity-40 transition-colors"
+                    >
+                      <ChevronRight size={18} className="text-gray-700" />
+                    </button>
+                  </div>
+                </div>
+
+              </div>
               {/* Message List */}
-              <div className="max-h-[60vh] overflow-y-auto pb-16">
+              <div className="max-h-[60vh] overflow-y-auto pb-4">
                 {paginatedMessages.map((msg) => {
                   const isSelected = selectedIds.includes(msg.id);
                   return (
@@ -477,7 +695,7 @@ export default function SetupMessageUI() {
                       } hover:shadow-lg hover:z-10`}
                     >
                       <div className="flex items-center" onClick={(e) => e.stopPropagation()}>
-                        <input type="checkbox" checked={isSelected} onChange={() => toggleSelect(msg.id)} className="w-4 h-4 md:w-5 md:h-5 rounded border-gray-300 text-[#5156E5] focus:ring-[#5156E5]" />
+                        <input type="checkbox" checked={isSelected} onChange={() => toggleSelect(msg.id)} className="w-4 h-4 md:w-5 md:h-5 rounded border-gray-300 text-[#5156E5] focus:ring-[#5156E5] cursor-pointer" />
                       </div>
 
                       <div className="flex-1 min-w-0">
@@ -546,16 +764,6 @@ export default function SetupMessageUI() {
                 <button onClick={() => setIsModalOpen(true)} className="bg-[#5156E5] hover:bg-[#4348C8] text-white shadow-xl hover:shadow-2xl transition-all rounded-full w-14 h-14 flex items-center justify-center">
                   <PenSquare size={24} />
                 </button>
-              </div>
-            </div>
-
-            {/* FOOTER */}
-            <div className="mt-8 pt-6 border-t border-gray-100 flex items-center justify-between">
-              <div className="text-xs text-gray-600">{totalResults > 0 ? `${startIndex + 1}-${endIndex} of ${totalResults} results` : '0 results'}</div>
-
-              <div className="flex gap-2">
-                <button disabled={currentPage === 1} onClick={() => setCurrentPage((prev) => prev - 1)} className="p-2 rounded-lg bg-[#F3F4F6] hover:bg-gray-200 disabled:opacity-40 transition-colors"><ChevronLeft size={20} className="text-gray-700" /></button>
-                <button disabled={currentPage === totalPages || totalPages === 0} onClick={() => setCurrentPage((prev) => prev + 1)} className="p-2 rounded-lg bg-[#F3F4F6] hover:bg-gray-200 disabled:opacity-40 transition-colors"><ChevronRight size={20} className="text-gray-700" /></button>
               </div>
             </div>
           </div>
