@@ -9,11 +9,11 @@ export default function ViewDocuments() {
   const itemsPerPage = 5;
 
   const documents = [
-  { id: 1, type: 'Payslip', cooperator: 'Seth Lawrence Omandam', added: 'Feb 17, 2026', thumbnail: '/images/thumbnails/payslip.png' },
-  { id: 2, type: 'Community Tax Certificate (Cedula)', cooperator: 'Kristian Lloyd Pague', added: 'Feb 16, 2026' }, // no thumbnail
-  { id: 3, type: 'Utility Bills', cooperator: 'Libertine Valdehueza', added: 'Feb 15, 2026', thumbnail: '/images/thumbnails/bills.jpg' },
-  { id: 4, type: 'Employee Salary Slip', cooperator: 'Jeevon Ricafort', added: 'Feb 14, 2026' }, // no thumbnail
-  { id: 5, type: 'Community Tax Certificate (Cedula)', cooperator: 'Neo Echavez', added: 'Feb 13, 2026', thumbnail: '/images/thumbnails/cedula.png' },
+  { id: 1, type: 'Payslip.pdf', cooperator: 'Seth Lawrence Omandam', added: 'Feb 17, 2026', thumbnail: '/images/thumbnails/Payslip.jpg' },
+  { id: 2, type: 'Cedula.jpeg', cooperator: 'Kristian Lloyd Pague', added: 'Feb 16, 2026' , thumbnail: '/images/thumbnails/Cedula.jpg'},
+  { id: 3, type: 'Utility_Bills.xlsx', cooperator: 'Libertine Valdehueza', added: 'Feb 15, 2026', thumbnail: '/images/thumbnails/Utility Bill.png' },
+  { id: 4, type: 'Salary_Slip.docx', cooperator: 'Jeevon Ricafort', added: 'Feb 14, 2026', thumbnail: '/images/thumbnails/Salary Slip.png' },
+  { id: 5, type: 'Cedula.jpg', cooperator: 'Neo Echavez', added: 'Feb 13, 2026', thumbnail: '/images/thumbnails/Cedula.jpg' },
   ];
 
   const filteredDocuments = documents.filter((d) => {
