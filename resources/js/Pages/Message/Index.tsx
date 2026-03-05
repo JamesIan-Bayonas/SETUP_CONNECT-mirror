@@ -16,7 +16,9 @@ import {
   FileArchive,
   FileCode,
   Eye,
-  EyeOff
+  EyeOff,
+  MailOpen,
+  Mail
 } from 'lucide-react';
 import CreateMessageModal from '../Messages/CreateMessageModal';
 
@@ -340,6 +342,7 @@ export default function SetupMessageUI() {
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('message:all-read-status-changed', { detail: { allRead: true, ids: newMessages.map((m) => m.id) } }));
         }
+        
       } catch (e) {
         // ignore
       }
@@ -385,8 +388,8 @@ export default function SetupMessageUI() {
           <div className="flex-1">
             {/* HEADER */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-              <h1 className="text-2xl font-bold text-gray-900">
-                Inbox <span className="text-gray-400 font-medium">({suppressHeaderCount ? 0 : unreadCount})</span>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Inbox 
               </h1>
 
               {/* ACTIVE + SEARCH BAR */}
@@ -526,7 +529,7 @@ export default function SetupMessageUI() {
                             <div className={`text-[9px] md:text-[10px] ${!msg.isRead ? 'font-bold text-gray-900' : 'text-gray-700'} whitespace-nowrap`}>{formatMessageDate(msg.date)}</div>
 
                             <div className="flex gap-1 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <button onClick={(e) => { e.stopPropagation(); toggleMessageReadStatus(msg.id); }} className="p-1 hover:bg-gray-200 rounded text-gray-600" title={msg.isRead ? "Mark as unread" : "Mark as read"}>{msg.isRead ? <EyeOff size={12} className="md:w-[14px] md:h-[14px]" /> : <Eye size={12} className="md:w-[14px] md:h-[14px]" />}</button>
+                              <button onClick={(e) => { e.stopPropagation(); toggleMessageReadStatus(msg.id); }} className="p-1 hover:bg-gray-200 rounded text-gray-600" title={msg.isRead ? "Mark as unread" : "Mark as read"}>{msg.isRead ? <Mail size={12} className="md:w-[14px] md:h-[14px]" /> : <MailOpen size={12} className="md:w-[14px] md:h-[14px]" />}</button>
                               <button onClick={(e) => e.stopPropagation()} className="p-1 hover:bg-gray-200 rounded text-blue-600"><Archive size={12} className="md:w-[14px] md:h-[14px]" /></button>
                               <button onClick={(e) => e.stopPropagation()} className="p-1 hover:bg-gray-200 rounded text-red-500"><Trash2 size={12} className="md:w-[14px] md:h-[14px]" /></button>
                             </div>
