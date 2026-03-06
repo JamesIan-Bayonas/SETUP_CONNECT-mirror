@@ -116,6 +116,99 @@ const DocumentViewerModal = ({
 export default function DocumentView({ documents }: { documents?: DocumentData[] }) {
   const [open, setOpen] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState<DocumentData | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fallback hardcoded values for fields not available from HEAD request
+  const fallbackCategory = "billing";
+  const fallbackUploadedBy = "Admin User";
+
+  // Sample file URL
+  const sampleFileUrl = "/docs/SETUP-CONNECT-Complete-Project-Documentation.pdf";
+
+  const fetchMetadata = async (fileUrl: string): Promise<DocumentData> => {
+    try {
+      const response = await fetch(fileUrl, { method: 'HEAD' });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch metadata: ${response.statusText}`);
+      }
+
+      // Extract name from URL
+      const name = fileUrl.split('/').pop() || 'Unknown';
+
+      // Extract format from extension or Content-Type
+      const extension = name.split('.').pop()?.toUpperCase() || '';
+      const contentType = response.headers.get('Content-Type') || '';
+      const format = extension || contentType.split('/').pop()?.toUpperCase() || 'UNKNOWN';
+
+      // Get size in bytes, convert to KB
+      const sizeBytes = parseInt(response.headers.get('Content-Length') || '0', 10);
+      const size = `${(sizeBytes / 1024).toFixed(2)} KB`;
+
+      // Get last modified date as upload date
+      const lastModified = response.headers.get('Last-Modified');
+      const uploadDate = lastModified ? new Date(lastModified).toLocaleString() : 'Unknown';
+
+      return {
+        name,
+        category: fallbackCategory, // Not available from HEAD; use fallback or backend
+        format,
+        size,
+        uploadedBy: fallbackUploadedBy, // Not available from HEAD; use fallback or backend
+        uploadDate,
+        fileUrl,
+      };
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  const openDocument = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const metadata = await fetchMetadata(sampleFileUrl);
+      setSelectedDoc(metadata);
+      setOpen(true);
+    } catch (err) {
+      setError('Failed to load document metadata.');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // If documents prop is provided, use it; else use fetched sample
+  const doc = documents?.[0] || null; // For now, assuming documents have metadata; adjust as needed
+
+  return (
+    <AuthenticatedLayout header="Documents">
+      <div className="p-6">
+        <button
+          onClick={openDocument}
+          disabled={loading}
+          className="px-4 py-2 bg-indigo-600 text-white rounded-lg disabled:opacity-50"
+        >
+          {loading ? 'Loading...' : 'Open Document'}
+        </button>
+
+        {error && <p className="text-red-500 mt-2">{error}</p>}
+
+        {open && selectedDoc && (
+          <DocumentViewerModal
+            document={selectedDoc}
+            onClose={() => setOpen(false)}
+          />
+        )}
+      </div>
+    </AuthenticatedLayout>
+  );
+}
+
+/* export default function DocumentView({ documents }: { documents?: DocumentData[] }) {
+  const [open, setOpen] = useState(false);
+  const [selectedDoc, setSelectedDoc] = useState<DocumentData | null>(null);
 
 //use sample
   const sampleDoc: DocumentData = {
@@ -125,7 +218,7 @@ export default function DocumentView({ documents }: { documents?: DocumentData[]
     size: "112 KB",
     uploadedBy: "Admin User",
     uploadDate: "2/23/2026, 7:15 PM",
-    fileUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+    fileUrl: "/docs/SETUP-CONNECT-Complete-Project-Documentation.pdf",
   };
 
   const doc = documents?.[0] || sampleDoc;
@@ -154,4 +247,4 @@ export default function DocumentView({ documents }: { documents?: DocumentData[]
       </div>
     </AuthenticatedLayout>
   );
-}
+} */
