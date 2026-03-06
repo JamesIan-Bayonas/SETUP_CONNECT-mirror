@@ -13,6 +13,17 @@ interface Announcement {
     icon: string;
 }
 
+type AnnouncementType = 'general' | 'system_update' | 'about_setup';
+
+interface FormDataType {
+    title: string;
+    content: string;
+    type: AnnouncementType;
+    publishDate: string;
+    department: string;
+    icon: string;
+}
+
 const INITIAL_ANNOUNCEMENTS: Announcement[] = [
     { id: 1, title: 'Welcome to Setup Connect', content: 'Thank you for joining the new DOST Setup Connect platform. We are excited to serve you better.', date: '2026-03-01', department: 'DOST Central Office', status: 'Active', icon: '📢' },
     { id: 2, title: 'New File Sharing Feature Released', content: 'System Update: You can now easily upload and share files with your team.', date: '2026-03-02', department: 'DOST-SEI', status: 'Active', icon: '⚙️' },
@@ -36,20 +47,20 @@ export default function AnnouncementIndex() {
     const itemsPerPage = 5;
 
     const announcementTypes = [
-        { type: 'general', label: 'General', department: 'DOST Central Office', icon: '📢' },
-        { type: 'system_update', label: 'System Update', department: 'DOST-SEI', icon: '⚙️' },
-        { type: 'about_setup', label: 'About Setup', department: 'DOST-TAPI', icon: '🔬' },
+        { type: 'general' as const, label: 'General', department: 'DOST Central Office', icon: '📢' },
+        { type: 'system_update' as const, label: 'System Update', department: 'DOST-SEI', icon: '⚙️' },
+        { type: 'about_setup' as const, label: 'About Setup', department: 'DOST-TAPI', icon: '🔬' },
     ];
 
-    const initialFormState = { 
+    const initialFormState: FormDataType = { 
         title: '', 
         content: '', 
-        type: 'general' as const, 
+        type: 'general', 
         publishDate: '', 
         department: announcementTypes[0].department, 
         icon: announcementTypes[0].icon 
     };
-    const [formData, setFormData] = useState(initialFormState);
+    const [formData, setFormData] = useState<FormDataType>(initialFormState);
 
     const editorRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -143,18 +154,19 @@ export default function AnnouncementIndex() {
         setIsModalOpen(false);
     };
 
-    const execCommand = (command: string) => document.execCommand(command, false, null);
+    const execCommand = (command: string) => document.execCommand(command, false);
 
     const handleFileAttach = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file || !editorRef.current) return;
         const reader = new FileReader();
         reader.onload = (event) => {
+            if (!event.target?.result) return;
             let html = '';
             if (file.type.startsWith('image/')) {
-                html = `<img src="${event.target?.result}" style="max-width:100%; height:auto; border-radius:8px; margin:8px 0;" />`;
+                html = `<img src="${event.target.result}" style="max-width:100%; height:auto; border-radius:8px; margin:8px 0;" />`;
             } else {
-                html = `<a href="${event.target?.result}" download="${file.name}" style="color:#3b82f6; text-decoration:underline; font-weight:500;">📄 ${file.name}</a><br>`;
+                html = `<a href="${event.target.result}" download="${file.name}" style="color:#3b82f6; text-decoration:underline; font-weight:500;">📄 ${file.name}</a><br>`;
             }
             editorRef.current!.innerHTML += html;
         };
@@ -272,7 +284,12 @@ export default function AnnouncementIndex() {
                             <span className="text-4xl bg-gray-50 p-3 rounded-full">{viewingAnnouncement.icon}</span>
                             <div>
                                 <h3 className="font-bold text-xl">{viewingAnnouncement.title}</h3>
-                                <div className="flex gap-3 text-sm text-gray-500 mt-2"><span>🗓️ {viewingAnnouncement.date}</span><span>🏢 {viewingAnnouncement.department}</span></div>
+                                <div className="flex gap-3 text-sm text-gray-500 mt-2">
+                                    <span>🗓️ {viewingAnnouncement.date}</span>
+                                    {viewingAnnouncement.department !== 'DOST Central Office' && (
+                                        <span>🏢 {viewingAnnouncement.department}</span>
+                                    )}
+                                </div>
                             </div>
                         </div>
                         <div className="text-gray-700 leading-relaxed bg-gray-50 p-4 rounded-lg border border-gray-100 prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: viewingAnnouncement.content }} />
@@ -313,10 +330,11 @@ export default function AnnouncementIndex() {
                                     <select 
                                         value={formData.type} 
                                         onChange={e => {
-                                            const selected = announcementTypes.find(t => t.type === e.target.value);
+                                            const typeValue = e.target.value as AnnouncementType;
+                                            const selected = announcementTypes.find(t => t.type === typeValue);
                                             setFormData({
                                                 ...formData, 
-                                                type: e.target.value, 
+                                                type: typeValue, 
                                                 department: selected?.department || '', 
                                                 icon: selected?.icon || ''
                                             });
