@@ -121,17 +121,17 @@ const getFileBadgeStyle = (type: string) => {
 
 // --- DUMMY DATA WITH ATTACHMENTS AND MESSAGE BODIES (31 ITEMS) ---
 const FAKE_MESSAGES: Message[] = [
-  { id: 1, recipient: "Sarah Johnson", subject: "Permit Application Inquiry – Follow-up", date: "2026-02-26 10:30 AM", isRead: true, hasAttachments: true, attachments: [{ name: "application.pdf", size: "2.4 MB", type: "pdf" }, { name: "blueprint.jpg", size: "1.8 MB", type: "image" }], body: "Hi, I'm following up on the permit application I submitted last week. Could you please let me know if there are any additional requirements or documents needed?" },
-  { id: 2, recipient: "Michael Brown", subject: "Missing Requirements – Attached updated files", date: "2026-01-15 09:45 AM", isRead: false, hasAttachments: true, attachments: [{ name: "requirements.docx", size: "856 KB", type: "doc" }, { name: "budget.xlsx", size: "1.2 MB", type: "spreadsheet" }, { name: "signed_forms.pdf", size: "3.1 MB", type: "pdf" }], body: "I've attached the missing requirements as requested. Please review the updated documents and let me know if you need anything else." },
+  { id: 1, recipient: "Sarah Johnson", subject: "Permit Application Inquiry – Follow-up", date: "2026-02-26 10:30 AM", isRead: false, hasAttachments: false, attachments: [], body: "Hi, I'm following up on the permit application I submitted last week. Could you please let me know if there are any additional requirements or documents needed?" },
+  { id: 2, recipient: "Michael Brown", subject: "Missing Requirements – Attached updated files", date: "2026-01-15 09:45 AM", isRead: false, hasAttachments: false, attachments: [], body: "I've attached the missing requirements as requested. Please review the updated documents and let me know if you need anything else." },
   { id: 3, recipient: "Jennifer Lee", subject: "System Maintenance Notice – Scheduled downtime", date: "2024-01-15 08:20 AM", isRead: true, hasAttachments: false, body: "We will be performing scheduled maintenance this weekend. The system will be unavailable from Saturday 10 PM to Sunday 2 AM." },
-  { id: 4, recipient: "Jenni", subject: "UI Design Feedback - Requesting changes", date: "2024-01-16 11:00 AM", isRead: true, hasAttachments: true, attachments: [{ name: "mockups.fig", size: "5.7 MB", type: "other" }], body: "The latest design looks great! Just a few minor changes needed on the home page. The color scheme is perfect but we need to adjust the spacing." },
+  { id: 4, recipient: "Jenni", subject: "UI Design Feedback - Requesting changes", date: "2024-01-16 11:00 AM", isRead: true, hasAttachments: false, attachments: [], body: "The latest design looks great! Just a few minor changes needed on the home page. The color scheme is perfect but we need to adjust the spacing." },
   { id: 5, recipient: "nifer Le", subject: "System Maintenance Notice – Phase 2", date: "2024-01-16 02:20 PM", isRead: true, hasAttachments: false, body: "Phase 2 of the system maintenance will begin next week. Please ensure all your work is saved and backed up." },
-  { id: 6, recipient: "ifer Lee", subject: "Project Proposal – Final Review", date: "2024-01-17 09:00 AM", isRead: true, hasAttachments: true, attachments: [{ name: "proposal.pdf", size: "4.2 MB", type: "pdf" }, { name: "presentation.pptx", size: "8.1 MB", type: "other" }], body: "Please review the final project proposal and let me know your thoughts by Friday. The client is expecting feedback early next week." },
-  { id: 7, recipient: "Jennr Lee", subject: "New Assignment: Database Schema", date: "2024-01-18 04:30 PM", isRead: true, hasAttachments: true, attachments: [{ name: "schema.sql", size: "245 KB", type: "code" }, { name: "diagram.pdf", size: "1.2 MB", type: "pdf" }], body: "I've assigned you to work on the new database schema design. Check the attachments for requirements and the current diagram." },
+  { id: 6, recipient: "ifer Lee", subject: "Project Proposal – Final Review", date: "2024-01-17 09:00 AM", isRead: true, hasAttachments: false, attachments: [], body: "Please review the final project proposal and let me know your thoughts by Friday. The client is expecting feedback early next week." },
+  { id: 7, recipient: "Jennr Lee", subject: "New Assignment: Database Schema", date: "2024-01-18 04:30 PM", isRead: true, hasAttachments: false, attachments: [], body: "I've assigned you to work on the new database schema design. Check the attachments for requirements and the current diagram." },
   { id: 8, recipient: "Jennifer e", subject: "Meeting Reminder: Sprint Planning", date: "2024-01-19 08:00 AM", isRead: true, hasAttachments: false, body: "Reminder: Sprint planning meeting tomorrow at 10 AM in the conference room. Please come prepared with your updates." },
   { id: 9, recipient: "Jeer Lee", subject: "Holiday Schedule Update", date: "2024-01-20 01:20 PM", isRead: true, hasAttachments: true, attachments: [{ name: "schedule.pdf", size: "1.1 MB", type: "pdf" }], body: "Please review the updated holiday schedule for Q2 attached. We've made some changes to accommodate the new company events." },
   { id: 10, recipient: "Jeer Lee", subject: "Account Verification Required", date: "2024-01-21 11:45 AM", isRead: false, hasAttachments: false, body: "Please verify your account to continue using our services. Click the link below to verify your email address." },
-  { id: 11, recipient: "Jeer Lee", subject: "Inquiry regarding Permit #9920", date: "2024-01-22 03:20 PM", isRead: false, hasAttachments: true, attachments: [{ name: "permit_docs.zip", size: "12.5 MB", type: "archive" }], body: "I'm following up on permit #9920 that was submitted last month. Can you provide an update on the status?" },
+  { id: 11, recipient: "Jeer Lee", subject: "Inquiry regarding Permit #9920", date: "2024-01-22 03:20 PM", isRead: false, hasAttachments: false, attachments: [], body: "I'm following up on permit #9920 that was submitted last month. Can you provide an update on the status?" },
   { id: 12, recipient: "Ivan Paul Benedict Intong", subject: "Creating a Design - UI Engagement", date: "2024-01-23 11:44 AM", isRead: true, hasAttachments: true, attachments: [{ name: "design_system.fig", size: "6.3 MB", type: "other" }, { name: "assets.zip", size: "15.2 MB", type: "archive" }], body: "Let's work on the UI engagement strategy for the new dashboard. I've attached the design system files for reference." },
   { id: 13, recipient: "Zein Bernard Aliswag", subject: "Creating Our Project Proposal", date: "2024-01-24 03:00 AM", isRead: false, hasAttachments: false, body: "I've started drafting the project proposal for the client meeting next week. Let's schedule a time to review it together." },
   { id: 14, recipient: "Sarah Johnson", subject: "Updated Contract - Please Sign", date: "2024-01-25 09:15 AM", isRead: true, hasAttachments: true, attachments: [{ name: "contract_v2.pdf", size: "3.4 MB", type: "pdf" }, { name: "signature_page.pdf", size: "1.2 MB", type: "pdf" }], body: "Please review and sign the updated contract at your earliest convenience. The changes reflect the new terms we discussed." },
@@ -151,7 +151,8 @@ const FAKE_MESSAGES: Message[] = [
   { id: 28, recipient: "John Wick", subject: "Supply Order: Continental", date: "2024-02-08 12:45 AM", isRead: true, hasAttachments: true, attachments: [{ name: "order_form.pdf", size: "1.9 MB", type: "pdf" }], body: "Supply order for the Continental has been processed and should arrive by the end of the week." },
   { id: 29, recipient: "Kathy Bates", subject: "Fan Letter - Misery", date: "2024-02-09 03:50 PM", isRead: true, hasAttachments: false, body: "Thank you for your wonderful performance in Misery. You truly captured the essence of the character." },
   { id: 30, recipient: "Leo Messi", subject: "Training Schedule Adjustment", date: "2024-02-10 08:20 AM", isRead: false, hasAttachments: true, attachments: [{ name: "new_schedule.pdf", size: "1.2 MB", type: "pdf" }], body: "Training schedule has been adjusted for the upcoming match. Please review the attached document for the new times." },
-  { id: 31, recipient: "Jeer Lee", subject: "Holiday Schedule Update", date: "2024-01-20 01:20 PM", isRead: false, hasAttachments: true, attachments: [{ name: "schedule.pdf", size: "1.1 MB", type: "pdf" }], body: "Please review the updated holiday schedule for Q2 attached. We've made some changes to accommodate the new company events." }
+  { id: 31, recipient: "Jeer Lee", subject: "Holiday Schedule Update", date: "2024-01-20 01:20 PM", isRead: false, hasAttachments: true, attachments: [{ name: "schedule.pdf", size: "1.1 MB", type: "pdf" }], body: "Please review the updated holiday schedule for Q2 attached. We've made some changes to accommodate the new company events." },
+  { id: 32, recipient: "Sarah Johnson", subject: "Permit Application Inquiry – Follow-up", date: "2026-03-26 10:30 AM", isRead: false, hasAttachments: false, attachments: [], body: "Hi, I'm following up on the permit application I submitted last week. Could you please let me know if there are any additional requirements or documents needed?" }
 ];
 
 // --- DATE HELPER FUNCTION ---
@@ -219,7 +220,7 @@ export default function SetupMessageUI() {
   // indicator until the user interacts (clicks a message or uses actions).
   const [suppressHeaderCount, setSuppressHeaderCount] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const itemsPerPage = 20;
   const [isSelectDropdownOpen, setIsSelectDropdownOpen] = useState(false);
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
@@ -515,11 +516,11 @@ export default function SetupMessageUI() {
                 <div className="flex items-center gap-1 md:gap-3">
                   
                   {/* Select All Checkbox + Dropdown */}
-                  <div className="relative flex items-center" ref={selectRef}>
-                   <div className="flex items-center hover:bg-gray-100 rounded px-1 py-1 transition-colors">
+                  <div className="relative flex left-1 items-center" ref={selectRef}>
+                    <div className="flex items-center hover:bg-gray-100 rounded px-1 py-1 transition-colors">
                       <input 
                         type="checkbox" 
-                        className="w-4 h-4 ml-1 rounded border-gray-300 text-[#5156E5] focus:ring-[#5156E5] cursor-pointer" 
+                        className="w-5 h-5 rounded border-gray-300 text-[#5156E5] focus:ring-[#5156E5] cursor-pointer" 
                         onChange={(e) => e.target.checked ? handleSelectMenu('all') : handleSelectMenu('none')}
                         checked={paginatedMessages.length > 0 && paginatedMessages.every(m => selectedIds.includes(m.id))}
                       />
@@ -528,7 +529,7 @@ export default function SetupMessageUI() {
                           setIsSelectDropdownOpen(!isSelectDropdownOpen);
                           setIsMoreDropdownOpen(false);
                           setIsSortDropdownOpen(false);
-                        }}
+                        }} 
                         className="p-1 cursor-pointer"
                       >
                         <ChevronDown size={16} className="text-gray-500" />
@@ -537,13 +538,25 @@ export default function SetupMessageUI() {
 
                     {/* Selection Dropdown Menu */}
                     {isSelectDropdownOpen && (
-                      <div className="absolute top-full left-0 mt-1 w-32 bg-white border border-gray-100 rounded shadow-lg z-50 py-1">
+                      <div className="absolute top-full left-3 mt-1 w-32 bg-white border border-gray-100 rounded shadow-lg z-50 py-1">
                         <button onClick={() => handleSelectMenu('all')} className="w-full text-left px-4 py-1.5 text-sm text-gray-700 hover:bg-gray-100">All</button>
                         <button onClick={() => handleSelectMenu('read')} className="w-full text-left px-4 py-1.5 text-sm text-gray-700 hover:bg-gray-100">Read</button>
                         <button onClick={() => handleSelectMenu('unread')} className="w-full text-left px-4 py-1.5 text-sm text-gray-700 hover:bg-gray-100">Unread</button>
                       </div>
                     )}
                   </div>
+                  
+                  {/* Archive and Delete Icons - Show when messages are selected */}
+                  {selectedIds.length > 0 && (
+                    <>
+                      <button className="p-2 hover:bg-gray-100 rounded-full text-gray-600 transition-colors" title="Archive">
+                        <Archive size={18} />
+                      </button>
+                      <button className="p-2 hover:bg-gray-100 rounded-full text-gray-600 transition-colors" title="Delete">
+                        <Trash2 size={18} />
+                      </button>
+                    </>
+                  )}
                   
                   {/* Refresh Button */}
                   <button className="p-2 hover:bg-gray-100 rounded-full text-gray-600 transition-colors" title="Refresh">
@@ -567,47 +580,57 @@ export default function SetupMessageUI() {
                     {/* Dropdown Menu */}
                     {isMoreDropdownOpen && (
                       <div className="absolute top-full left-0 mt-1 w-56 bg-white border border-gray-100 rounded shadow-lg z-50 py-1">
-                        <button 
-                          onClick={() => { markAllAsRead(); setIsMoreDropdownOpen(false); }}
-                          className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
-                        >
-                          <MailOpen size={16} className="text-gray-500" />
-                          Mark all as read
-                        </button>
 
-                        <div className="border-t border-gray-100 my-1"></div>
+                        {/* Only show "Mark all as read" if no messages are selected */}
+                        {selectedIds.length === 0 && (
+                          <button
+                            onClick={() => {
+                              markAllAsRead();
+                              setIsMoreDropdownOpen(false);
+                            }}
+                            className="w-full flex items-center gap-2 text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          >
+                            <MailOpen className="w-4 h-4" />
+                            Mark all as read
+                          </button>
+                        )}
 
                         {selectedIds.length === 0 ? (
-                          <div className="px-4 py-2 text-sm text-gray-400 italic">Select messages to see more actions</div>
+                          <div className="px-4 py-2 text-sm text-gray-400 italic border-t">
+                            Select messages to see more actions
+                          </div>
                         ) : (
                           <>
+                            {/* Mark selected as read */}
                             <button 
                               onClick={() => {
-                                setMessages(prev => prev.map(m => selectedIds.includes(m.id) ? { ...m, isRead: true } : m));
+                                setMessages(prev =>
+                                  prev.map(m =>
+                                    selectedIds.includes(m.id) ? { ...m, isRead: true } : m
+                                  )
+                                );
                                 setIsMoreDropdownOpen(false);
                               }} 
-                              className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                              className="w-full flex items-center gap-2 text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 border-t"
                             >
+                              <MailOpen className="w-4 h-4" />
                               Mark as read
                             </button>
+
+                            {/* Mark selected as unread */}
                             <button 
                               onClick={() => {
-                                setMessages(prev => prev.map(m => selectedIds.includes(m.id) ? { ...m, isRead: false } : m));
+                                setMessages(prev =>
+                                  prev.map(m =>
+                                    selectedIds.includes(m.id) ? { ...m, isRead: false } : m
+                                  )
+                                );
                                 setIsMoreDropdownOpen(false);
                               }} 
-                              className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                              className="w-full flex items-center gap-2 text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                             >
+                              <Mail className="w-4 h-4" />
                               Mark as unread
-                            </button>
-                            <button 
-                              onClick={() => {
-                                setMessages(prev => prev.filter(m => !selectedIds.includes(m.id)));
-                                setSelectedIds([]);
-                                setIsMoreDropdownOpen(false);
-                              }} 
-                              className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-                            >
-                              Delete selected
                             </button>
                           </>
                         )}
@@ -682,8 +705,9 @@ export default function SetupMessageUI() {
                 </div>
 
               </div>
+              
               {/* Message List */}
-              <div className="max-h-[60vh] overflow-y-auto pb-4">
+              <div className="max-h-[100vh] overflow-y-auto pb-4">
                 {paginatedMessages.map((msg) => {
                   const isSelected = selectedIds.includes(msg.id);
                   return (
@@ -691,31 +715,55 @@ export default function SetupMessageUI() {
                       key={msg.id}
                       onClick={() => handleViewMessage(msg.id)}
                       className={`flex items-start gap-3 p-3 md:p-4 rounded-xl transition-all duration-200 cursor-pointer border-b border-gray-100 relative group ${
-                        isSelected ? 'bg-[#DDE0FF] border-indigo-200 shadow-sm' : !msg.isRead ? 'bg-gray-100 border-gray-200 rounded-lg' : 'bg-white hover:bg-gray-50'
+                        isSelected
+                          ? 'bg-[#DDE0FF] border-indigo-200 shadow-sm'
+                          : !msg.isRead
+                          ? 'bg-gray-100 border-gray-200 rounded-lg'
+                          : 'bg-white hover:bg-gray-50'
                       } hover:shadow-lg hover:z-10`}
                     >
+                      {/* Checkbox */}
                       <div className="flex items-center" onClick={(e) => e.stopPropagation()}>
-                        <input type="checkbox" checked={isSelected} onChange={() => toggleSelect(msg.id)} className="w-4 h-4 md:w-5 md:h-5 rounded border-gray-300 text-[#5156E5] focus:ring-[#5156E5] cursor-pointer" />
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleSelect(msg.id)}
+                          className="w-4 h-4 md:w-5 md:h-5 rounded border-gray-300 text-[#5156E5] focus:ring-[#5156E5] cursor-pointer"
+                          title="Select"
+                        />
                       </div>
 
+                      {/* Message Content */}
                       <div className="flex-1 min-w-0">
                         <div className="grid grid-cols-12 items-start gap-1 md:gap-2">
-                          <div className={`col-span-12 md:col-span-3 truncate text-xs md:text-sm ${!msg.isRead ? 'font-bold text-black' : 'font-medium text-gray-700'}`}>
+                          <div
+                            className={`col-span-12 md:col-span-3 truncate text-xs md:text-sm ${
+                              !msg.isRead ? 'font-bold text-black' : 'font-medium text-gray-700'
+                            }`}
+                          >
                             <HighlightText text={msg.recipient} highlight={searchTerm} />
                           </div>
 
                           <div className="col-span-10 md:col-span-7 flex flex-col">
                             <div className="flex items-baseline gap-2 overflow-hidden">
                               {msg.unreadCount >= 2 ? (
-                                <span className="ml-2 text-[10px] md:text-xs font-bold text-yellow-600 bg-yellow-100 px-2 py-0.5 rounded-full whitespace-nowrap">{msg.unreadCount} new messages</span>
+                                <span className="ml-2 text-[10px] md:text-xs font-bold text-yellow-600 bg-yellow-100 px-2 py-0.5 rounded-full whitespace-nowrap">
+                                  {msg.unreadCount} new messages
+                                </span>
                               ) : (
                                 <>
-                                  <span className={`text-xs md:text-sm whitespace-nowrap ${!msg.isRead ? 'font-bold text-black' : 'font-semibold text-gray-800'}`}>
+                                  <span
+                                    className={`text-xs md:text-sm whitespace-nowrap ${
+                                      !msg.isRead ? 'font-bold text-black' : 'font-semibold text-gray-800'
+                                    }`}
+                                  >
                                     <HighlightText text={msg.subject} highlight={searchTerm} />
                                   </span>
 
                                   {msg.unreadCount === 0 && (
-                                    <span className="text-gray-500 text-[10px] md:text-xs truncate">- <HighlightText text={msg.body.substring(0, 60)} highlight={searchTerm} /></span>
+                                    <span className="text-gray-500 text-[10px] md:text-xs truncate">
+                                      - <HighlightText text={msg.body.substring(0, 60)} highlight={searchTerm} />
+                                    </span>
                                   )}
                                 </>
                               )}
@@ -726,7 +774,11 @@ export default function SetupMessageUI() {
                                 {msg.attachments.slice(0, 3).map((att, idx) => {
                                   const style = getFileBadgeStyle(att.type);
                                   return (
-                                    <div key={idx} className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[8px] md:text-[10px] font-medium ${style.bg} ${style.text} ${style.border} border whitespace-nowrap`} title={att.name}>
+                                    <div
+                                      key={idx}
+                                      className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[8px] md:text-[10px] font-medium ${style.bg} ${style.text} ${style.border} border whitespace-nowrap`}
+                                      title={att.name}
+                                    >
                                       {style.icon}
                                       <span className="max-w-[50px] md:max-w-[80px] truncate">{att.name}</span>
                                     </div>
@@ -743,13 +795,47 @@ export default function SetupMessageUI() {
                             )}
                           </div>
 
+                          {/* Date + Actions */}
                           <div className="col-span-2 text-right flex flex-col items-end min-w-[60px] md:min-w-[80px]">
-                            <div className={`text-[9px] md:text-[10px] ${!msg.isRead ? 'font-bold text-gray-900' : 'text-gray-700'} whitespace-nowrap`}>{formatMessageDate(msg.date)}</div>
+                            <div
+                              className={`text-[9px] md:text-[10px] ${
+                                !msg.isRead ? 'font-bold text-gray-900' : 'text-gray-700'
+                              } whitespace-nowrap`}
+                            >
+                              {formatMessageDate(msg.date)}
+                            </div>
 
+                            {/* Action buttons */}
                             <div className="flex gap-1 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <button onClick={(e) => { e.stopPropagation(); toggleMessageReadStatus(msg.id); }} className="p-1 hover:bg-gray-200 rounded text-gray-600" title={msg.isRead ? "Mark as unread" : "Mark as read"}>{msg.isRead ? <Mail size={12} className="md:w-[14px] md:h-[14px]" /> : <MailOpen size={12} className="md:w-[14px] md:h-[14px]" />}</button>
-                              <button onClick={(e) => e.stopPropagation()} className="p-1 hover:bg-gray-200 rounded text-blue-600"><Archive size={12} className="md:w-[14px] md:h-[14px]" /></button>
-                              <button onClick={(e) => e.stopPropagation()} className="p-1 hover:bg-gray-200 rounded text-red-500"><Trash2 size={12} className="md:w-[14px] md:h-[14px]" /></button>
+                              {/* Mark Read/Unread */}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleMessageReadStatus(msg.id);
+                                }}
+                                className="p-1 hover:bg-gray-200 rounded text-green-600"
+                                title={msg.isRead ? 'Mark as unread' : 'Mark as read'}
+                              >
+                                {msg.isRead ? <Mail size={12} className="md:w-[14px] md:h-[14px]" /> : <MailOpen size={12} className="md:w-[14px] md:h-[14px]" />}
+                              </button>
+
+                              {/* Archive with hover label */}
+                              <button
+                                onClick={(e) => e.stopPropagation()}
+                                className="p-1 hover:bg-gray-200 rounded text-blue-600 relative"
+                                title="Archive"
+                              >
+                                <Archive size={12} className="md:w-[14px] md:h-[14px]" />
+                              </button>
+
+                              {/* Delete with hover label */}
+                              <button
+                                onClick={(e) => e.stopPropagation()}
+                                className="p-1 hover:bg-gray-200 rounded text-red-500 relative"
+                                title="Delete"
+                              >
+                                <Trash2 size={12} className="md:w-[14px] md:h-[14px]" />
+                              </button>
                             </div>
                           </div>
                         </div>
