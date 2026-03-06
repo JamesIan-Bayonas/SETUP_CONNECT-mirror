@@ -18,8 +18,6 @@ import {
   FileSpreadsheet,
   FileArchive,
   FileCode,
-  Eye,
-  EyeOff,
   MailOpen,
   Mail
 } from 'lucide-react';
