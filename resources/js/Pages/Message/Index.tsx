@@ -429,6 +429,10 @@ export default function SetupMessageUI() {
       return newMessages;
     });
   };
+  const [isStatusOpen, setIsStatusOpen] = useState(false);
+  const [statusMode, setStatusMode] = useState<"automatic" | "dnd">("automatic");
+  const statusRef = useRef<HTMLDivElement>(null);
+
 
   return (
     <AuthenticatedLayout>
@@ -446,13 +450,81 @@ export default function SetupMessageUI() {
               {/* ACTIVE + SEARCH BAR */}
               <div className="flex items-center gap-3 w-full md:max-w-xl">
                 {/* Active Status */}
-                <div className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-full shadow-sm whitespace-nowrap">
-                  <span className="relative flex h-3 w-3">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
-                  </span>
-                  <span className="text-xs font-semibold text-gray-700 hidden sm:inline">Active</span>
-                </div>
+                  <div ref={statusRef} className="relative">
+
+                    <div
+                      onClick={() => setIsStatusOpen(!isStatusOpen)}
+                      className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-full shadow-sm whitespace-nowrap cursor-pointer hover:bg-gray-50 transition"
+                    >
+                      <span className="relative flex h-3 w-3">
+                        {statusMode === "automatic" ? (
+                          <>
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                          </>
+                        ) : (
+                          <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                        )}
+                      </span>
+
+                      <span className="text-xs font-semibold text-gray-700 hidden sm:inline">
+                        {statusMode === "automatic" ? "Active" : "Do not disturb"}
+                      </span>
+
+                      <ChevronDown size={14} className="text-gray-400" />
+                    </div>
+
+                    {isStatusOpen && (
+                      <div className="absolute left-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+
+                        {/* Automatic */}
+                        <div
+                          onClick={() => {
+                            setStatusMode("automatic");
+                            setIsStatusOpen(false);
+                          }}
+                          className="flex items-start gap-3 p-3 hover:bg-gray-100 cursor-pointer"
+                        >
+                          <span className="h-3 w-3 mt-1 rounded-full bg-green-500"></span>
+
+                          <div>
+                            <p className="text-sm font-medium">Automatic</p>
+                            <p className="text-xs text-gray-500">
+                              Based on chat activity
+                            </p>
+                          </div>
+
+                          {statusMode === "automatic" && (
+                            <span className="ml-auto text-gray-500">✓</span>
+                          )}
+                        </div>
+
+                        {/* Do Not Disturb */}
+                        <div
+                          onClick={() => {
+                            setStatusMode("dnd");
+                            setIsStatusOpen(false);
+                          }}
+                          className="flex items-start gap-3 p-3 hover:bg-gray-100 cursor-pointer"
+                        >
+                          <span className="h-3 w-3 mt-1 rounded-full bg-red-500"></span>
+
+                          <div>
+                            <p className="text-sm font-medium">Do not disturb</p>
+                            <p className="text-xs text-gray-500">
+                              Mute chat notifications
+                            </p>
+                          </div>
+
+                          {statusMode === "dnd" && (
+                            <span className="ml-auto text-gray-500">✓</span>
+                          )}
+                        </div>
+
+                      </div>
+                    )}
+                  </div>
+
 
                 {/* Search Bar */}
                 <div className="relative flex-1">
