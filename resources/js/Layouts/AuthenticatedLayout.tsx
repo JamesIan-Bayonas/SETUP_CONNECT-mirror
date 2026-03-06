@@ -1,6 +1,7 @@
 import { PropsWithChildren, ReactNode, useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import { User } from '@/types';
+import { Inbox } from 'lucide-react';
 
 interface AuthenticatedLayoutProps {
   header?: ReactNode;
@@ -520,21 +521,8 @@ export default function AuthenticatedLayout({ header, children }: PropsWithChild
                         : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                     }`}
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M3 3l18 9-18 9 4-9-4-9z"
-                      />
-                    </svg>
-                    {sidebarOpen && <span className="ml-3">Sent Message</span>}
+                    <Inbox className="h-5 w-5" />
+                    {sidebarOpen && <span className="ml-3">Inbox</span>}
                   </Link>
                 </div>
               )}
@@ -867,10 +855,8 @@ export default function AuthenticatedLayout({ header, children }: PropsWithChild
                             : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                         }`}
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0 h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3l18 9-18 9 4-9-4-9z" />
-                        </svg>
-                        Sent Message
+                        <Inbox className="h-5 w-5 mr-3" />
+                        Inbox
                       </Link>
                     </div>
                   )}
