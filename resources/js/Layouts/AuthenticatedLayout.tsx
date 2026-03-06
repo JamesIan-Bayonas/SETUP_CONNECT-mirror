@@ -458,34 +458,7 @@ export default function AuthenticatedLayout({ header, children }: PropsWithChild
                   {sidebarOpen && <span className="ml-3">View</span>}
                   </Link>
                   
-                  {/* Upload Document */}
-                  <Link
-                      href="/upload"
-                      className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                          isActive("/document/upload")
-                              ? "bg-indigo-50 text-indigo-600"
-                              : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                      }`}
-                  >
-                      <svg
-                          className={`flex-shrink-0 h-5 w-5 ${
-                              isActive("/document/upload")
-                                  ? "text-indigo-600"
-                                  : "text-gray-400 group-hover:text-gray-500"
-                          }`}
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                      >
-                          <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
-                          />
-                      </svg>
-                      {sidebarOpen && <span className="ml-3">Upload</span>}
-                  </Link>
+                    {/* Upload Document removed from sidebar; accessible from Documents view */}
                 </div>
             )}
           </div>
