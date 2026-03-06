@@ -879,35 +879,9 @@ export default function SetupMessageUI() {
 
                             {/* Action buttons */}
                             <div className="flex gap-1 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                              {/* Mark Read/Unread */}
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  toggleMessageReadStatus(msg.id);
-                                }}
-                                className="p-1 hover:bg-gray-200 rounded text-green-600"
-                                title={msg.isRead ? 'Mark as unread' : 'Mark as read'}
-                              >
-                                {msg.isRead ? <Mail size={12} className="md:w-[14px] md:h-[14px]" /> : <MailOpen size={12} className="md:w-[14px] md:h-[14px]" />}
-                              </button>
-
-                              {/* Archive with hover label */}
-                              <button
-                                onClick={(e) => e.stopPropagation()}
-                                className="p-1 hover:bg-gray-200 rounded text-blue-600 relative"
-                                title="Archive"
-                              >
-                                <Archive size={12} className="md:w-[14px] md:h-[14px]" />
-                              </button>
-
-                              {/* Delete with hover label */}
-                              <button
-                                onClick={(e) => e.stopPropagation()}
-                                className="p-1 hover:bg-gray-200 rounded text-red-500 relative"
-                                title="Delete"
-                              >
-                                <Trash2 size={12} className="md:w-[14px] md:h-[14px]" />
-                              </button>
+                              <button onClick={(e) => { e.stopPropagation(); toggleMessageReadStatus(msg.id); }} className="p-1 hover:bg-gray-200 rounded text-zinc-950" title={msg.isRead ? "Mark as unread" : "Mark as read"}>{msg.isRead ? <Mail size={12} className="md:w-[14px] md:h-[14px]" /> : <MailOpen size={12} className="md:w-[14px] md:h-[14px]" />}</button>
+                              <button onClick={(e) => e.stopPropagation()} className="p-1 hover:bg-gray-200 rounded text-zinc-950" title="Archive"> <Archive size={12} className="md:w-[14px] md:h-[14px]" /></button>
+                              <button onClick={(e) => e.stopPropagation()} className="p-1 hover:bg-gray-200 rounded text-zinc-950" title="Delete"><Trash2 size={12} className="md:w-[14px] md:h-[14px]" /></button>
                             </div>
                           </div>
                         </div>
