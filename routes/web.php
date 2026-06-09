@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\UserController;
@@ -12,11 +13,12 @@ use App\Http\Controllers\Web\BusinessOrganizationTypeController;
 use App\Http\Controllers\Web\DocumentTypeController;
 use App\Events\CustomerApplicationApproved;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 // Redirect root to login
 Route::get('/', function () {
-    return auth()->check() ? redirect('/dashboard') : redirect('/login');
+    return Auth::check() ? redirect('/dashboard') : redirect('/login');
 });
 
 // Application success page (public)
@@ -139,6 +141,10 @@ Route::middleware('auth')->group(function () {
         ->name('moi.schedule-tna');
     Route::get('/moi/staff-list', [ManifestationOfIntentController::class, 'staffList'])
         ->name('moi.staff-list');
+
+    // Announcement Module Endpoints (Team 2 Scope)
+    Route::get('/announcements', [AnnouncementController::class, 'index'])->name('announcements.index');
+    Route::post('/announcements', [AnnouncementController::class, 'store'])->name('announcements.store');
 });
 
 // Message Route
@@ -189,7 +195,7 @@ HTML);
             'Test Applicant',
             $to,
             1,
-            optional(auth()->user())->id,
+            optional(Auth::user())->id,
             now()->toIso8601String(),
         );
         return 'Dispatched test approval event to ' . $to;

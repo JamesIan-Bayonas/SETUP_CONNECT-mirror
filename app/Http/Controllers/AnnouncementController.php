@@ -19,25 +19,32 @@ class AnnouncementController extends Controller
     {
         $user = $request->user();
         
-        $announcements = Announcement::with('user:id,name,photo')
+        $announcements = Announcement::with('user:id,name')
             ->where(function ($query) use ($user) {
                 $query->where('target_role', 'all');
                 if ($user) {
                     $query->orWhere('target_role', $user->role ?? 'applicant');
                 }
             })
-            ->where(function ($query) {
-                $query->whereNull('expires_at')
-                      ->orWhere('expires_at', '>', now());
-            })
-            ->orderByDesc('is_pinned')
             ->orderByDesc('created_at')
-            ->paginate(10)
-            ->withQueryString();
+            ->paginate(10);
 
         return Inertia::render('Announcements/Index', [
             'announcements' => $announcements,
-            'filters' => $request->only(['search', 'priority'])
+            // FORCE CONTRACT: Explicitly push user permissions and roles into the frontend view instance
+            'auth' => [
+                'user' => $user ? [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role' => $user->role ?? 'applicant',
+                    'user_type' => $user->role ?? 'applicant', // Keeps standard layout matching active
+                ] : null,
+            ],
+            'flash' => [
+                'success' => $request->session()->get('success'),
+                'error' => $request->session()->get('error'),
+            ]
         ]);
     }
 
