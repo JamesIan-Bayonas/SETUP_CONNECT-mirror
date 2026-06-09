@@ -15,11 +15,18 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
+    "ignoreDeprecations": "6.0", // FIXED: Silences TypeScript 7.0 upgrade warnings
     "baseUrl": ".",
     "paths": {
       "@/*": ["./resources/js/*"]
-    }
+    },
+    "types": ["vite/client", "node"] // FIXED: Removed the stray comma from inside the string
   },
-  "include": ["resources/**/*.ts", "resources/**/*.tsx"],
+  "include": [
+    "resources/js/**/*.ts",
+    "resources/js/**/*.tsx",
+    "resources/js/**/*.d.ts",
+    "vite.config.ts"
+  ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

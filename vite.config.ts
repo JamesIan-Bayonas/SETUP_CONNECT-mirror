@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import react from '@vitejs/plugin-react';
+import path from 'path'; // Pull in Node's path resolution core module
 
 export default defineConfig({
     plugins: [
@@ -12,7 +13,8 @@ export default defineConfig({
     ],
     resolve: {
         alias: {
-            '@': '/resources/js',
+            // FIXED: Dynamically resolves the absolute path to your local workspace directory
+            '@': path.resolve(__dirname, './resources/js'),
         },
     },
 });
