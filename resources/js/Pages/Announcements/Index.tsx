@@ -2,6 +2,16 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, usePage, useForm, router } from '@inertiajs/react';
 
+// 1. Strict Type Contracts matching database layer schemas
+interface User {
+    id: number;
+    name: string;
+    email: string;
+    role: string;
+    user_type: string;
+    photo?: string;
+}
+
 interface Announcement {
     id: string; 
     title: string;
@@ -16,6 +26,9 @@ interface Announcement {
 }
 
 interface PageProps {
+    auth: {
+        user: User | null;
+    };
     announcements: {
         data: Announcement[];
     };
@@ -23,21 +36,24 @@ interface PageProps {
         success?: string;
         error?: string;
     };
+    currentStatusFilter?: 'All' | 'Active' | 'Draft' | 'Archived';
+    [key: string]: any; // Catch-all index signature to appease loose global props
 }
 
 export default function AnnouncementIndex() {
-    // 1. FIXED: Correctly grab props from Inertia without duplicate parameters in the function signature
-    const { announcements, flash } = usePage<any>().props as unknown as PageProps;
+    // FIXED: Correct generic typing structure directly matching Inertia Page Shared Prop Vectors
+    const { props } = usePage<PageProps>();
+    const { announcements, flash, auth, currentStatusFilter } = props;
     
     const [searchTerm, setSearchTerm] = useState('');
-    const [statusFilter, setStatusFilter] = useState<'All' | 'Active' | 'Archived' | 'Draft'>('All');
+    // const [statusFilter, setStatusFilter] = useState<'All' | 'Active' | 'Archived' | 'Draft'>('All');
     
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [viewingAnnouncement, setViewingAnnouncement] = useState<Announcement | null>(null);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     
-    const { data, setData, post, put, reset } = useForm({
+    const { data, setData, reset } = useForm({
         title: '',
         content: '',
         priority: 'normal',
@@ -54,11 +70,12 @@ export default function AnnouncementIndex() {
                 item.content.toLowerCase().includes(searchTerm.toLowerCase());
             
             const currentStatus = item.status || 'Active';
-            const matchesStatus = statusFilter === 'All' || currentStatus === statusFilter;
+            const safeFilter = currentStatusFilter ?? 'All';
+            const matchesStatus = safeFilter === 'All' || currentStatus === safeFilter;
             
             return matchesSearch && matchesStatus;
         }).sort((a: Announcement, b: Announcement) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-    }, [announcements, searchTerm, statusFilter]);
+    }, [announcements, searchTerm, currentStatusFilter]);
 
     const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.checked) setSelectedIds(filteredAnnouncements.map((item: Announcement) => item.id));
@@ -102,27 +119,44 @@ export default function AnnouncementIndex() {
         }
     };
 
-    const handleFormSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        const finalContent = editorRef.current ? editorRef.current.innerHTML : data.content;
+    // 1. Update the function signature to accept the status string parameter
+    const handleFormSubmit = (e: React.FormEvent, status: 'Active' | 'Draft') => {
+    e.preventDefault();
+    const finalContent = editorRef.current ? editorRef.current.innerHTML : data.content;
 
-        if (!data.title.trim() || !finalContent.trim()) {
-            alert("Title and Content fields are strictly required!");
-            return;
-        }
+    if (!data.title.trim() || !finalContent.trim()) {
+        alert("Title and Content fields are strictly required!");
+        return;
+    }
 
-        data.content = finalContent;
+    if (editingId) {
+        // Use the global router to send the custom payload explicitly over a PUT request
+        router.put(`/announcements/${editingId}`, {
+            ...data,
+            content: finalContent,
+            status: status
+        }, {
+            onSuccess: () => setIsModalOpen(false)
+        });
+    } else {
+        router.post('/announcements', {
+            ...data,
+            content: finalContent,
+            status: status
+        }, {
+            onSuccess: () => setIsModalOpen(false)
+        });
+    }
 
-        if (editingId) {
-            put(`/announcements/${editingId}`, {
-                onSuccess: () => setIsModalOpen(false)
-            });
-        } else {
-            post('/announcements', {
-                onSuccess: () => setIsModalOpen(false)
-            });
-        }
+};
+    const handleTabChange = (filter: 'All' | 'Active' | 'Draft' | 'Archived') => {
+        // Using direct string paths to avoid Ziggy typing collisions
+        router.get('/announcements', { status: filter }, {
+            preserveState: true,
+            preserveScroll: true
+        });
     };
+
 
     const execCommand = (command: string) => document.execCommand(command, false);
 
@@ -130,9 +164,8 @@ export default function AnnouncementIndex() {
         if (isModalOpen && editorRef.current) {
             editorRef.current.innerHTML = data.content || '';
         }
-    }, [isModalOpen, editingId]);
+    }, [isModalOpen, editingId, data.content]);
 
-    // 2. FIXED: Removed user={auth.user} because AuthenticatedLayout fetches it internally.
     return (
         <AuthenticatedLayout header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Announcements</h2>}>
             <Head title="Announcements Management" />
@@ -148,9 +181,12 @@ export default function AnnouncementIndex() {
 
                     <div className="flex justify-between items-center mb-6">
                         <h3 className="text-xl font-bold text-gray-800">Latest Updates</h3>
-                        <button onClick={openCreateModal} className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-6 rounded-lg text-sm flex items-center gap-2 transition">
-                            + New Announcement
-                        </button>
+                        {/* Safe optional chaining checking backend permission state */}
+                        {(auth?.user?.user_type === 'admin' || auth?.user?.user_type === 'psto_staff') && (
+                            <button onClick={openCreateModal} className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-6 rounded-lg text-sm flex items-center gap-2 transition">
+                                + New Announcement
+                            </button>
+                        )}
                     </div>
 
                     <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
@@ -166,8 +202,13 @@ export default function AnnouncementIndex() {
                                 {(['All', 'Active', 'Draft', 'Archived'] as const).map(f => (
                                     <button 
                                         key={f} 
-                                        onClick={() => setStatusFilter(f)} 
-                                        className={`px-4 py-1.5 text-sm font-medium rounded-md transition ${statusFilter === f ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-gray-50'}`}
+                                        type="button" 
+                                        onClick={() => handleTabChange(f)} 
+                                        className={`px-4 py-1.5 text-sm font-medium rounded-md transition ${
+                                            (currentStatusFilter ?? 'All') === f 
+                                                ? 'bg-blue-50 text-blue-700 font-semibold' 
+                                                : 'text-gray-600 hover:bg-gray-50'
+                                        }`}
                                     >
                                         {f}
                                     </button>
@@ -219,7 +260,7 @@ export default function AnnouncementIndex() {
                                         </td>
                                         <td className="py-4 px-6">
                                             <div className="font-medium text-gray-900 flex items-center gap-2">
-                                                <span>📢</span> {item.title}
+                                                <span>📌</span> {item.title}
                                             </div>
                                             <div className="text-sm text-gray-500 truncate max-w-md mt-0.5" dangerouslySetInnerHTML={{ __html: item.content }} />
                                         </td>
@@ -232,8 +273,12 @@ export default function AnnouncementIndex() {
                                             </button>
                                         </td>
                                         <td className="py-4 px-6 text-right space-x-4">
-                                            <button onClick={() => openEditModal(item)} className="text-blue-600 hover:text-blue-900 font-medium text-sm">Edit</button>
-                                            <button onClick={() => handleDelete(item.id)} className="text-red-600 hover:text-red-900 font-medium text-sm">Delete</button>
+                                            {(auth?.user?.user_type === 'admin' || auth?.user?.user_type === 'psto_staff') && (
+                                                <>
+                                                    <button onClick={() => openEditModal(item)} className="text-blue-600 hover:text-blue-900 font-medium text-sm">Edit</button>
+                                                    <button onClick={() => handleDelete(item.id)} className="text-red-600 hover:text-red-900 font-medium text-sm">Delete</button>
+                                                </>
+                                            )}
                                         </td>
                                     </tr>
                                 )) : (
@@ -247,6 +292,7 @@ export default function AnnouncementIndex() {
                 </div>
             </div>
 
+            {/* Modal - View Detail Stream */}
             {viewingAnnouncement && (
                 <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full p-6 relative">
@@ -266,9 +312,10 @@ export default function AnnouncementIndex() {
                 </div>
             )}
 
+            {/* Modal - Create/Edit Form Context */}
             {isModalOpen && (
                 <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <form onSubmit={handleFormSubmit} className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[92vh] flex flex-col overflow-hidden">
+                    <form className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[92vh] flex flex-col overflow-hidden">
                         <div className="px-6 py-4 border-b flex justify-between items-center sticky top-0 bg-white z-10">
                             <h3 className="font-bold text-xl text-gray-900">{editingId ? 'Edit Announcement' : 'New Announcement'}</h3>
                             <button type="button" onClick={() => setIsModalOpen(false)} className="text-3xl text-gray-400 hover:text-gray-600">×</button>
@@ -315,8 +362,31 @@ export default function AnnouncementIndex() {
                         </div>
 
                         <div className="px-6 py-5 bg-gray-50 border-t flex justify-end gap-3 sticky bottom-0">
-                            <button type="button" onClick={() => setIsModalOpen(false)} className="px-6 py-2.5 text-gray-700 hover:bg-gray-100 rounded-xl transition">Cancel</button>
-                            <button type="submit" className="px-6 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition font-medium">Publish Now</button>
+                            <button 
+                                type="button" 
+                                onClick={() => setIsModalOpen(false)} 
+                                className="px-6 py-2.5 text-gray-700 hover:bg-gray-100 rounded-xl transition"
+                            >
+                                Cancel
+                            </button>
+                            
+                            {/* 1. Save as Draft Button */}
+                            <button 
+                                type="button" 
+                                onClick={(e) => handleFormSubmit(e, 'Draft')} 
+                                className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition"
+                            >
+                                Save as Draft
+                            </button>
+                            
+                            {/* 2. Publish Now Button */}
+                            <button 
+                                type="button" 
+                                onClick={(e) => handleFormSubmit(e, 'Active')} 
+                                className="px-6 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition font-medium"
+                            >
+                                Publish Now
+                            </button>
                         </div>
                     </form>
                 </div>

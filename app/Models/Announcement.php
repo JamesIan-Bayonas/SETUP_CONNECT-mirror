@@ -12,6 +12,7 @@ class Announcement extends Model
     use HasFactory, HasUuids;
 
     protected $fillable = [
+        'status',
         'user_id',
         'title',
         'content',

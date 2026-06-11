@@ -132,6 +132,28 @@ export default function AuthenticatedLayout({ header, children }: PropsWithChild
             {sidebarOpen && <span className="ml-3">Dashboard</span>}
           </Link>
 
+          {/* Announcements Link - Visible to All Users */}
+          <Link
+            href="/announcements"
+            className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+              isActive('/announcements')
+                ? 'bg-indigo-50 text-indigo-600'
+                : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+            }`}
+          >
+            <svg
+              className={`flex-shrink-0 h-6 w-6 ${
+                isActive('/announcements') ? 'text-indigo-600' : 'text-gray-400 group-hover:text-gray-500'
+              }`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M11 5.882a5.008 5.008 0 014.5 4.999V13a5 5 0 01-4.5 4.999M11 5.882l4.5 5.118M9 13h2" />
+            </svg>
+            {sidebarOpen && <span className="ml-3">Announcements</span>}
+          </Link>
+
           {/* My Documents - Cooperators only */}
           {user.user_type === 'cooperator' && (
             <Link
@@ -568,6 +590,22 @@ export default function AuthenticatedLayout({ header, children }: PropsWithChild
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                 </svg>
                 Dashboard
+              </Link>
+
+              {/* Announcements Mobile Link */}
+              <Link
+                href="/announcements"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                  isActive('/announcements')
+                    ? 'bg-indigo-50 text-indigo-600'
+                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                }`}
+              >
+                <svg className="flex-shrink-0 h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M11 5.882a5.008 5.008 0 014.5 4.999V13a5 5 0 01-4.5 4.999M11 5.882l4.5 5.118M9 13h2" />
+                </svg>
+                Announcements
               </Link>
 
               {/* My Documents - Cooperators only (mobile) */}

@@ -33,23 +33,38 @@ class HandleInertiaRequests extends Middleware
      *
      * @return array<string, mixed>
      */
+    // public function share(Request $request): array
+    // {
+    //     return [
+    //         ...parent::share($request),
+    //         'auth' => [
+    //             'user' => $request->user(),
+    //         ],
+    //         'flash' => [
+    //             'success' => $request->session()->get('success'),
+    //             'error' => $request->session()->get('error'),
+    //         ],
+    //     ];
+    // }
+    
     public function share(Request $request): array
-    {
-        return array_merge(parent::share($request), [
-            'auth' => [
-                'user' => $request->user() ? [
-                    'id' => $request->user()->id,
-                    'name' => $request->user()->name,
-                    'email' => $request->user()->email,
-                    'role' => $request->user()->role ?? 'applicant',
-                    // FIXED: Map the absolute property value to satisfy AuthenticatedLayout.tsx line 71
-                    'user_type' => $request->user()->role ?? 'applicant', 
-                ] : null,
-            ],
-            'flash' => [
-                'success' => $request->session()->get('success'),
-                'error' => $request->session()->get('error'),
-            ],
-        ]);
-    }
+{
+    return array_merge(parent::share($request), [
+        'auth' => [
+            'user' => $request->user() ? [
+                'id' => $request->user()->id,
+                'name' => $request->user()->name,
+                'email' => $request->user()->email,
+                // Extract the value from the UserType Enum safely
+                'role' => $request->user()->user_type?->value ?? $request->user()->user_type ?? 'applicant',
+                'user_type' => $request->user()->user_type?->value ?? $request->user()->user_type ?? 'applicant',
+                'photo' => $request->user()->photo,
+            ] : null,
+        ],
+        'flash' => [
+            'success' => $request->session()->get('success'),
+            'error' => $request->session()->get('error'),
+        ],
+    ]);
+}
 }
