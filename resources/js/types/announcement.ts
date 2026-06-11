@@ -1,7 +1,7 @@
 export type AnnouncementPriority = 'low' | 'normal' | 'high' | 'critical';
 export type AnnouncementTargetRole = 'all' | 'admin' | 'cooperator' | 'applicant';
 
-export interface AnnouncementAuthor {
+    export interface AnnouncementAuthor {
     id: number;
     name: string;
     photo?: string | null;
@@ -19,7 +19,7 @@ export interface Announcement {
     created_at: string;
     updated_at: string;
     user?: AnnouncementAuthor; // Populated via eager loading context
-}
+}   
 
 export interface PaginatedAnnouncements {
     data: Announcement[];
