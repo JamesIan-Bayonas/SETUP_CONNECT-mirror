@@ -88,6 +88,14 @@ Route::middleware('auth')->group(function () {
     Route::middleware('can:manage-document-types')->group(function () {
         Route::resource('document-types', DocumentTypeController::class)->except(['show']);
     });
+
+    // =========================================================================
+    // CODE INSERTION POINT: Place your Announcement engine right here
+    // =========================================================================
+    Route::resource('announcements', AnnouncementController::class);
+    
+    Route::post('/announcements/bulk-archive', [AnnouncementController::class, 'bulkArchive'])
+        ->name('announcements.bulkArchive');
 });
 
 
@@ -141,14 +149,10 @@ Route::middleware('auth')->group(function () {
         ->name('moi.schedule-tna');
     Route::get('/moi/staff-list', [ManifestationOfIntentController::class, 'staffList'])
         ->name('moi.staff-list');
-
-    // Announcement Module Endpoints (Team 2 Scope)
-    Route::get('/announcements', [AnnouncementController::class, 'index'])->name('announcements.index');
-    Route::post('/announcements', [AnnouncementController::class, 'store'])->name('announcements.store');
 });
 
 // Message Route
-Route::middleware('auth')->group(function () {
+Route::middleware('auth')->group(function () {              
 
     Route::get('/messages', function () {
         
